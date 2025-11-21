@@ -1,0 +1,29 @@
+{
+  "valid": [
+    "user@example.com",
+    "test.user@example.com",
+    "user+tag@example.co.uk",
+    "user_name@example-domain.com",
+    "user123@test123.org",
+    "firstname.lastname@example.com",
+    "email@subdomain.example.com",
+    "1234567890@example.com"
+  ],
+  "invalid": [
+    "plainaddress",
+    "@no-local.com",
+    "no-at-sign.com",
+    "missing-domain@.com",
+    "missing@domain",
+    "two@@example.com",
+    "dotdot..@example.com",
+    "spaces in@example.com"
+  ],
+  "edge_cases": [
+    "user+tag+tag@example.com",
+    "user.name+tag@example.co.uk",
+    "x@example.com",
+    "very.long.email.address.with.many.dots@example.com"
+  ]
+}
+

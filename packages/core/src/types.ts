@@ -1,6 +1,6 @@
 /**
  * Core type definitions for mailtest
- * 
+ *
  * @packageDocumentation
  */
 
@@ -30,4 +30,3 @@ export interface Config {
     [key: string]: ValidatorOptions;
   };
 }
-

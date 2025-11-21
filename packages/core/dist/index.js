@@ -1,5 +1,3 @@
-'use strict';
-
 // src/index.ts
 function validateEmail(email) {
   if (!email || typeof email !== "string") {
@@ -9,7 +7,6 @@ function validateEmail(email) {
 }
 var VERSION = "1.0.0";
 
-exports.VERSION = VERSION;
-exports.validateEmail = validateEmail;
+export { VERSION, validateEmail };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map
