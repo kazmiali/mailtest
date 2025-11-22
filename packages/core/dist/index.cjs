@@ -1,7 +1,5 @@
 'use strict';
 
-var zod = require('zod');
-
 // src/types.ts
 var ErrorCode = /* @__PURE__ */ ((ErrorCode2) => {
   ErrorCode2["INVALID_CONFIG"] = "INVALID_CONFIG";
@@ -20,59 +18,157 @@ var ErrorCode = /* @__PURE__ */ ((ErrorCode2) => {
   ErrorCode2["NETWORK_ERROR"] = "NETWORK_ERROR";
   return ErrorCode2;
 })(ErrorCode || {});
-var errorSeveritySchema = zod.z.enum(["warning", "error", "critical"]);
-var errorCodeSchema = zod.z.nativeEnum(ErrorCode).or(zod.z.string());
-var validationErrorSchema = zod.z.object({
-  code: errorCodeSchema,
-  message: zod.z.string().min(1, "Error message cannot be empty"),
-  suggestion: zod.z.string().optional(),
-  severity: errorSeveritySchema,
-  validator: zod.z.string().optional(),
-  details: zod.z.unknown().optional()
+function isString(value) {
+  return typeof value === "string";
+}
+function isNumber(value) {
+  return typeof value === "number" && !isNaN(value);
+}
+function isBoolean(value) {
+  return typeof value === "boolean";
+}
+function isObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function success(data) {
+  return { success: true, data };
+}
+function error(message) {
+  return { success: false, error: { message } };
+}
+function validateEnum(value, allowedValues, errorMessage) {
+  if (!isString(value)) {
+    return error(`Expected string, got ${typeof value}`);
+  }
+  if (!allowedValues.includes(value)) {
+    return error(errorMessage);
+  }
+  return success(value);
+}
+function validateInteger(value, min, max, errorMessage) {
+  if (!isNumber(value)) {
+    return error(`Expected number, got ${typeof value}`);
+  }
+  if (!Number.isInteger(value)) {
+    return error(errorMessage || "Expected integer");
+  }
+  if (value < min) {
+    return error(errorMessage || `Value must be at least ${min}`);
+  }
+  return success(value);
+}
+function validatePositiveInteger(value, errorMessage = "Must be a positive integer") {
+  return validateInteger(value, 1, void 0, errorMessage);
+}
+function validateBoolean(value) {
+  if (!isBoolean(value)) {
+    return error(`Expected boolean, got ${typeof value}`);
+  }
+  return success(value);
+}
+function validateObject(value, validators, allowExtra = false) {
+  if (!isObject(value)) {
+    return error(`Expected object, got ${typeof value}`);
+  }
+  const result = {};
+  const errors = [];
+  for (const [key, validator] of Object.entries(validators)) {
+    if (key in value && validator) {
+      const fieldResult = validator(value[key]);
+      if (fieldResult.success) {
+        if (fieldResult.data !== void 0) {
+          result[key] = fieldResult.data;
+        }
+      } else {
+        errors.push(`${key}: ${fieldResult.error.message}`);
+      }
+    }
+  }
+  if (!allowExtra) {
+    for (const key in value) {
+      if (!(key in validators)) {
+        errors.push(`Unexpected field: ${key}`);
+      }
+    }
+  }
+  if (errors.length > 0) {
+    return error(errors.join("; "));
+  }
+  return success(result);
+}
+function validateOptional(value, validator) {
+  if (value === void 0 || value === null) {
+    return success(void 0);
+  }
+  return validator(value);
+}
+
+// src/schemas.ts
+var Schema = class {
+  constructor(validator) {
+    this.validator = validator;
+  }
+  safeParse(value) {
+    return this.validator(value);
+  }
+};
+var validatorConfigSchema = new Schema((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { success: false, error: { message: "Expected object" } };
+  }
+  const obj = value;
+  if (!("enabled" in obj)) {
+    return { success: false, error: { message: "Missing required field: enabled" } };
+  }
+  const enabledResult = validateBoolean(obj.enabled);
+  if (!enabledResult.success) {
+    return enabledResult;
+  }
+  return { success: true, data: { enabled: enabledResult.data } };
 });
-var validatorResultSchema = zod.z.object({
-  valid: zod.z.boolean(),
-  validator: zod.z.string().min(1, "Validator name cannot be empty"),
-  error: validationErrorSchema.optional(),
-  details: zod.z.record(zod.z.string(), zod.z.unknown()).optional()
+var validatorOptionsConfigSchema = new Schema((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { success: false, error: { message: "Expected object" } };
+  }
+  const result = {};
+  const errors = [];
+  for (const [key, val] of Object.entries(value)) {
+    if (val === void 0) {
+      result[key] = void 0;
+    } else if (typeof val === "boolean") {
+      result[key] = val;
+    } else {
+      const configResult = validatorConfigSchema.safeParse(val);
+      if (configResult.success) {
+        result[key] = configResult.data;
+      } else {
+        errors.push(`${key}: ${configResult.error.message}`);
+      }
+    }
+  }
+  if (errors.length > 0) {
+    return { success: false, error: { message: errors.join("; ") } };
+  }
+  return { success: true, data: result };
 });
-var validatorConfigSchema = zod.z.object({
-  enabled: zod.z.boolean()
-});
-var validatorOptionsConfigSchema = zod.z.object({
-  regex: zod.z.union([validatorConfigSchema, zod.z.boolean()]).optional(),
-  typo: zod.z.union([validatorConfigSchema, zod.z.boolean()]).optional(),
-  disposable: zod.z.union([validatorConfigSchema, zod.z.boolean()]).optional(),
-  mx: zod.z.union([validatorConfigSchema, zod.z.boolean()]).optional(),
-  smtp: zod.z.union([validatorConfigSchema, zod.z.boolean()]).optional()
-});
-zod.z.object({
-  email: zod.z.string().email("Invalid email format"),
-  validators: validatorOptionsConfigSchema.optional(),
-  earlyExit: zod.z.boolean().optional(),
-  timeout: zod.z.number().int().positive("Timeout must be a positive integer").optional()
-});
-var validationReasonSchema = zod.z.enum(["regex", "typo", "disposable", "mx", "smtp", "custom"]);
-var validatorsResultSchema = zod.z.object({
-  regex: validatorResultSchema.optional(),
-  typo: validatorResultSchema.optional(),
-  disposable: validatorResultSchema.optional(),
-  mx: validatorResultSchema.optional(),
-  smtp: validatorResultSchema.optional()
-}).catchall(validatorResultSchema.optional());
-zod.z.object({
-  valid: zod.z.boolean(),
-  email: zod.z.string().email("Invalid email format"),
-  score: zod.z.number().int().min(0, "Score must be between 0 and 100").max(100, "Score must be between 0 and 100"),
-  reason: validationReasonSchema.optional(),
-  validators: validatorsResultSchema
-});
-var presetSchema = zod.z.enum(["strict", "balanced", "permissive"]);
-var configSchema = zod.z.object({
-  preset: presetSchema.optional(),
-  validators: validatorOptionsConfigSchema.optional(),
-  earlyExit: zod.z.boolean().optional(),
-  timeout: zod.z.number().int().positive("Timeout must be a positive integer").optional()
+var presetSchema = new Schema(
+  (value) => validateEnum(value, ["strict", "balanced", "permissive"], "Invalid preset")
+);
+var configSchema = new Schema((value) => {
+  const result = validateObject(
+    value,
+    {
+      preset: (val) => validateOptional(val, (v) => presetSchema.safeParse(v)),
+      validators: (val) => validateOptional(val, (v) => validatorOptionsConfigSchema.safeParse(v)),
+      earlyExit: (val) => validateOptional(val, validateBoolean),
+      timeout: (val) => validateOptional(
+        val,
+        (v) => validatePositiveInteger(v, "Timeout must be a positive integer")
+      )
+    },
+    true
+  );
+  return result;
 });
 
 // src/config/config.ts
@@ -122,7 +218,7 @@ var ConfigManager = class {
    * Create a new ConfigManager instance
    *
    * @param userConfig - User-provided configuration (optional)
-   * @throws {z.ZodError} If configuration is invalid
+   * @throws {Error} If configuration is invalid
    */
   constructor(userConfig) {
     if (userConfig) {
@@ -568,7 +664,7 @@ function createLogger(config) {
 }
 
 // src/index.ts
-function validateEmail(email) {
+function validateEmail2(email) {
   if (!email || typeof email !== "string") {
     return false;
   }
@@ -588,6 +684,6 @@ exports.ValidationError = ValidationError;
 exports.createError = createError;
 exports.createLogger = createLogger;
 exports.getLogger = getLogger;
-exports.validateEmail = validateEmail;
+exports.validateEmail = validateEmail2;
 //# sourceMappingURL=index.cjs.map
 //# sourceMappingURL=index.cjs.map

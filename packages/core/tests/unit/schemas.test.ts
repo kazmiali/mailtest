@@ -10,7 +10,7 @@ import {
 } from '../../src/schemas';
 import { ErrorCode } from '../../src/types';
 
-describe('Zod Schemas', () => {
+describe('Validation Schemas', () => {
   describe('validationErrorSchema', () => {
     it('should validate a valid validation error', () => {
       const error = {

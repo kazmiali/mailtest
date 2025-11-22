@@ -757,8 +757,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.6.2"],\
           ["tsup", "virtual:22f6394f4ce30bdbb653394f463efaf54991f122aa59d620058b6e279ba6796c15f6780955bbd6e0c6e95830598f984701e72de1d368ff150a524bd8fc1facd6#npm:8.5.1"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=e012d7"],\
-          ["vitest", "virtual:22f6394f4ce30bdbb653394f463efaf54991f122aa59d620058b6e279ba6796c15f6780955bbd6e0c6e95830598f984701e72de1d368ff150a524bd8fc1facd6#npm:4.0.12"],\
-          ["zod", "npm:4.1.12"]\
+          ["vitest", "virtual:22f6394f4ce30bdbb653394f463efaf54991f122aa59d620058b6e279ba6796c15f6780955bbd6e0c6e95830598f984701e72de1d368ff150a524bd8fc1facd6#npm:4.0.12"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -4072,15 +4071,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../.yarn/berry/cache/yocto-queue-npm-0.1.0-c6c9a7db29-10c0.zip/node_modules/yocto-queue/",\
         "packageDependencies": [\
           ["yocto-queue", "npm:0.1.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["zod", [\
-      ["npm:4.1.12", {\
-        "packageLocation": "../../../.yarn/berry/cache/zod-npm-4.1.12-8e1ffc4d68-10c0.zip/node_modules/zod/",\
-        "packageDependencies": [\
-          ["zod", "npm:4.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\

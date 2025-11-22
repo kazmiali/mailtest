@@ -107,10 +107,10 @@ export class ConfigManager {
    * Create a new ConfigManager instance
    *
    * @param userConfig - User-provided configuration (optional)
-   * @throws {z.ZodError} If configuration is invalid
+   * @throws {Error} If configuration is invalid
    */
   constructor(userConfig?: Partial<Config>) {
-    // Validate user config with Zod
+    // Validate user config
     if (userConfig) {
       const validationResult = configSchema.safeParse(userConfig);
       if (!validationResult.success) {

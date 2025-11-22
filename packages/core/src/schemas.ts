@@ -1,116 +1,294 @@
 /**
- * Zod schemas for runtime validation
+ * Custom schemas for runtime validation
+ * Replaces Zod with lightweight, dependency-free validators
  *
  * @packageDocumentation
  */
 
-import { z } from 'zod';
-import { ErrorCode } from './types';
+import {
+  ErrorCode,
+  type ErrorSeverity,
+  type ValidationError,
+  type ValidatorResult,
+  type ValidatorConfig,
+} from './types';
+import {
+  validateEnum,
+  validateString,
+  validateEmail,
+  validateInteger,
+  validatePositiveInteger,
+  validateBoolean,
+  validateObject,
+  validateOptional,
+  validateRecord,
+  type ValidationResult,
+} from './utils/validation';
+
+/**
+ * Schema-like object with safeParse method matching Zod API
+ */
+class Schema<T> {
+  constructor(private validator: (value: unknown) => ValidationResult<T>) {}
+
+  safeParse(value: unknown): ValidationResult<T> {
+    return this.validator(value);
+  }
+}
 
 /**
  * Schema for error severity levels
  */
-export const errorSeveritySchema = z.enum(['warning', 'error', 'critical']);
+export const errorSeveritySchema = new Schema<ErrorSeverity>((value) =>
+  validateEnum(value, ['warning', 'error', 'critical'] as const, 'Invalid error severity')
+);
 
 /**
  * Schema for error codes
  */
-export const errorCodeSchema = z.nativeEnum(ErrorCode).or(z.string());
+export const errorCodeSchema = new Schema<ErrorCode | string>((value) => {
+  if (typeof value === 'string') {
+    // Check if it's a valid ErrorCode enum value
+    const errorCodes = Object.values(ErrorCode) as string[];
+    if (errorCodes.includes(value)) {
+      return { success: true, data: value as ErrorCode };
+    }
+    // Allow custom string error codes
+    return { success: true, data: value };
+  }
+  return { success: false, error: { message: 'Expected string or ErrorCode enum' } };
+});
 
 /**
  * Schema for validation error details
  */
-export const validationErrorSchema = z.object({
-  code: errorCodeSchema,
-  message: z.string().min(1, 'Error message cannot be empty'),
-  suggestion: z.string().optional(),
-  severity: errorSeveritySchema,
-  validator: z.string().optional(),
-  details: z.unknown().optional(),
+export const validationErrorSchema = new Schema<ValidationError>((value) => {
+  const result = validateObject(
+    value,
+    {
+      code: (val) => errorCodeSchema.safeParse(val),
+      message: (val) => validateString(val, 1, 'Error message cannot be empty'),
+      suggestion: (val) => validateOptional(val, validateString),
+      severity: (val) => errorSeveritySchema.safeParse(val),
+      validator: (val) => validateOptional(val, validateString),
+      details: () => ({ success: true, data: undefined as unknown }),
+    },
+    true // Allow extra fields
+  );
+  return result as ValidationResult<ValidationError>;
 });
 
 /**
  * Schema for validator result
  */
-export const validatorResultSchema = z.object({
-  valid: z.boolean(),
-  validator: z.string().min(1, 'Validator name cannot be empty'),
-  error: validationErrorSchema.optional(),
-  details: z.record(z.string(), z.unknown()).optional(),
+export const validatorResultSchema = new Schema<ValidatorResult>((value) => {
+  const result = validateObject(
+    value,
+    {
+      valid: (val) => validateBoolean(val),
+      validator: (val) => validateString(val, 1, 'Validator name cannot be empty'),
+      error: (val) => validateOptional(val, (v) => validationErrorSchema.safeParse(v)),
+      details: (val) =>
+        validateOptional(val, (v) => validateRecord(v, () => ({ success: true, data: v }))),
+    },
+    true
+  );
+  return result as ValidationResult<ValidatorResult>;
 });
 
 /**
  * Schema for validator configuration
  */
-export const validatorConfigSchema = z.object({
-  enabled: z.boolean(),
+export const validatorConfigSchema = new Schema<ValidatorConfig>((value) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { success: false, error: { message: 'Expected object' } };
+  }
+  const obj = value as Record<string, unknown>;
+  if (!('enabled' in obj)) {
+    return { success: false, error: { message: 'Missing required field: enabled' } };
+  }
+  const enabledResult = validateBoolean(obj.enabled);
+  if (!enabledResult.success) {
+    return enabledResult;
+  }
+  return { success: true, data: { enabled: enabledResult.data } };
 });
 
 /**
  * Schema for validator options (validators can be boolean or config object)
  */
-const validatorOptionsConfigSchema = z.object({
-  regex: z.union([validatorConfigSchema, z.boolean()]).optional(),
-  typo: z.union([validatorConfigSchema, z.boolean()]).optional(),
-  disposable: z.union([validatorConfigSchema, z.boolean()]).optional(),
-  mx: z.union([validatorConfigSchema, z.boolean()]).optional(),
-  smtp: z.union([validatorConfigSchema, z.boolean()]).optional(),
+const validatorOptionsConfigSchema = new Schema<
+  Record<string, ValidatorConfig | boolean | undefined>
+>((value) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { success: false, error: { message: 'Expected object' } };
+  }
+
+  const result: Record<string, ValidatorConfig | boolean | undefined> = {};
+  const errors: string[] = [];
+
+  for (const [key, val] of Object.entries(value)) {
+    if (val === undefined) {
+      result[key] = undefined;
+    } else if (typeof val === 'boolean') {
+      result[key] = val;
+    } else {
+      const configResult = validatorConfigSchema.safeParse(val);
+      if (configResult.success) {
+        result[key] = configResult.data;
+      } else {
+        errors.push(`${key}: ${configResult.error.message}`);
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    return { success: false, error: { message: errors.join('; ') } };
+  }
+
+  return { success: true, data: result };
 });
 
 /**
  * Schema for validator options (single email validation)
  */
-export const validatorOptionsSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  validators: validatorOptionsConfigSchema.optional(),
-  earlyExit: z.boolean().optional(),
-  timeout: z.number().int().positive('Timeout must be a positive integer').optional(),
+export const validatorOptionsSchema = new Schema<{
+  email: string;
+  validators?: Record<string, ValidatorConfig | boolean | undefined>;
+  earlyExit?: boolean;
+  timeout?: number;
+}>((value) => {
+  const result = validateObject(
+    value,
+    {
+      email: (val) => validateEmail(val, 'Invalid email format'),
+      validators: (val) => validateOptional(val, (v) => validatorOptionsConfigSchema.safeParse(v)),
+      earlyExit: (val) => validateOptional(val, validateBoolean),
+      timeout: (val) =>
+        validateOptional(val, (v) =>
+          validatePositiveInteger(v, 'Timeout must be a positive integer')
+        ),
+    },
+    true
+  );
+  return result as ValidationResult<{
+    email: string;
+    validators?: Record<string, ValidatorConfig | boolean | undefined>;
+    earlyExit?: boolean;
+    timeout?: number;
+  }>;
 });
 
 /**
  * Schema for validation result reason
  */
-const validationReasonSchema = z.enum(['regex', 'typo', 'disposable', 'mx', 'smtp', 'custom']);
+const validationReasonSchema = new Schema<
+  'regex' | 'typo' | 'disposable' | 'mx' | 'smtp' | 'custom'
+>((value) =>
+  validateEnum(
+    value,
+    ['regex', 'typo', 'disposable', 'mx', 'smtp', 'custom'] as const,
+    'Invalid reason'
+  )
+);
 
 /**
  * Schema for validation result validators object
  */
-const validatorsResultSchema = z
-  .object({
-    regex: validatorResultSchema.optional(),
-    typo: validatorResultSchema.optional(),
-    disposable: validatorResultSchema.optional(),
-    mx: validatorResultSchema.optional(),
-    smtp: validatorResultSchema.optional(),
-  })
-  .catchall(validatorResultSchema.optional());
+const validatorsResultSchema = new Schema<Record<string, ValidatorResult | undefined>>((value) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { success: false, error: { message: 'Expected object' } };
+  }
+
+  const result: Record<string, ValidatorResult | undefined> = {};
+  const errors: string[] = [];
+
+  for (const [key, val] of Object.entries(value)) {
+    if (val === undefined) {
+      result[key] = undefined;
+    } else {
+      const validatorResult = validatorResultSchema.safeParse(val);
+      if (validatorResult.success) {
+        result[key] = validatorResult.data;
+      } else {
+        errors.push(`${key}: ${validatorResult.error.message}`);
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    return { success: false, error: { message: errors.join('; ') } };
+  }
+
+  return { success: true, data: result };
+});
 
 /**
  * Schema for validation result (output format)
  */
-export const validationResultSchema = z.object({
-  valid: z.boolean(),
-  email: z.string().email('Invalid email format'),
-  score: z
-    .number()
-    .int()
-    .min(0, 'Score must be between 0 and 100')
-    .max(100, 'Score must be between 0 and 100'),
-  reason: validationReasonSchema.optional(),
-  validators: validatorsResultSchema,
+export const validationResultSchema = new Schema<{
+  valid: boolean;
+  email: string;
+  score: number;
+  reason?: 'regex' | 'typo' | 'disposable' | 'mx' | 'smtp' | 'custom';
+  validators: Record<string, ValidatorResult | undefined>;
+}>((value) => {
+  const result = validateObject(
+    value,
+    {
+      valid: (val) => validateBoolean(val),
+      email: (val) => validateEmail(val, 'Invalid email format'),
+      score: (val) => {
+        const result = validateInteger(val, 0, 100, 'Score must be between 0 and 100');
+        return result;
+      },
+      reason: (val) => validateOptional(val, (v) => validationReasonSchema.safeParse(v)),
+      validators: (val) => validatorsResultSchema.safeParse(val),
+    },
+    true
+  );
+  return result as ValidationResult<{
+    valid: boolean;
+    email: string;
+    score: number;
+    reason?: 'regex' | 'typo' | 'disposable' | 'mx' | 'smtp' | 'custom';
+    validators: Record<string, ValidatorResult | undefined>;
+  }>;
 });
 
 /**
  * Schema for configuration preset
  */
-export const presetSchema = z.enum(['strict', 'balanced', 'permissive']);
+export const presetSchema = new Schema<'strict' | 'balanced' | 'permissive'>((value) =>
+  validateEnum(value, ['strict', 'balanced', 'permissive'] as const, 'Invalid preset')
+);
 
 /**
- * Schema for full configuration (will be expanded in Task 2.3)
+ * Schema for full configuration
  */
-export const configSchema = z.object({
-  preset: presetSchema.optional(),
-  validators: validatorOptionsConfigSchema.optional(),
-  earlyExit: z.boolean().optional(),
-  timeout: z.number().int().positive('Timeout must be a positive integer').optional(),
+export const configSchema = new Schema<{
+  preset?: 'strict' | 'balanced' | 'permissive';
+  validators?: Record<string, ValidatorConfig | boolean | undefined>;
+  earlyExit?: boolean;
+  timeout?: number;
+}>((value) => {
+  const result = validateObject(
+    value,
+    {
+      preset: (val) => validateOptional(val, (v) => presetSchema.safeParse(v)),
+      validators: (val) => validateOptional(val, (v) => validatorOptionsConfigSchema.safeParse(v)),
+      earlyExit: (val) => validateOptional(val, validateBoolean),
+      timeout: (val) =>
+        validateOptional(val, (v) =>
+          validatePositiveInteger(v, 'Timeout must be a positive integer')
+        ),
+    },
+    true
+  );
+  return result as ValidationResult<{
+    preset?: 'strict' | 'balanced' | 'permissive';
+    validators?: Record<string, ValidatorConfig | boolean | undefined>;
+    earlyExit?: boolean;
+    timeout?: number;
+  }>;
 });
