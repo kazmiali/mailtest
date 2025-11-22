@@ -277,7 +277,7 @@ describe('Validation Utilities', () => {
         { name: 'test', age: 'invalid' },
         {
           name: (val) => ({ success: true, data: val as string }),
-          age: (val) => ({ success: false, error: { message: 'Invalid age' } }),
+          age: (_val) => ({ success: false, error: { message: 'Invalid age' } }),
         }
       );
       expect(result.success).toBe(false);
@@ -326,8 +326,8 @@ describe('Validation Utilities', () => {
       const result = validateObject(
         { name: '', age: -5 },
         {
-          name: (val) => ({ success: false, error: { message: 'Name required' } }),
-          age: (val) => ({ success: false, error: { message: 'Age must be positive' } }),
+          name: (_val) => ({ success: false, error: { message: 'Name required' } }),
+          age: (_val) => ({ success: false, error: { message: 'Age must be positive' } }),
         }
       );
       expect(result.success).toBe(false);
@@ -364,7 +364,7 @@ describe('Validation Utilities', () => {
     });
 
     it('should propagate validation error', () => {
-      const result = validateOptional('invalid', (val) => ({
+      const result = validateOptional('invalid', (_val) => ({
         success: false,
         error: { message: 'Invalid value' },
       }));
@@ -377,10 +377,10 @@ describe('Validation Utilities', () => {
 
   describe('validateRecord', () => {
     it('should validate record with valid values', () => {
-      const result = validateRecord(
-        { key1: 'value1', key2: 'value2' },
-        (val) => ({ success: true, data: val as string })
-      );
+      const result = validateRecord({ key1: 'value1', key2: 'value2' }, (val) => ({
+        success: true,
+        data: val as string,
+      }));
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.key1).toBe('value1');
@@ -389,7 +389,10 @@ describe('Validation Utilities', () => {
     });
 
     it('should reject non-object value', () => {
-      const result = validateRecord('not-object', (val) => ({ success: true, data: val as string }));
+      const result = validateRecord('not-object', (val) => ({
+        success: true,
+        data: val as string,
+      }));
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.message).toContain('Expected object');
@@ -407,15 +410,12 @@ describe('Validation Utilities', () => {
     });
 
     it('should reject record with invalid values', () => {
-      const result = validateRecord(
-        { key1: 'valid', key2: 'invalid' },
-        (val) => {
-          if (val === 'invalid') {
-            return { success: false, error: { message: 'Invalid value' } };
-          }
-          return { success: true, data: val as string };
+      const result = validateRecord({ key1: 'valid', key2: 'invalid' }, (val) => {
+        if (val === 'invalid') {
+          return { success: false, error: { message: 'Invalid value' } };
         }
-      );
+        return { success: true, data: val as string };
+      });
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.message).toContain('key2: Invalid value');
@@ -423,10 +423,10 @@ describe('Validation Utilities', () => {
     });
 
     it('should handle multiple validation errors', () => {
-      const result = validateRecord(
-        { key1: 'invalid1', key2: 'invalid2' },
-        (val) => ({ success: false, error: { message: `Invalid: ${val}` } })
-      );
+      const result = validateRecord({ key1: 'invalid1', key2: 'invalid2' }, (val) => ({
+        success: false,
+        error: { message: `Invalid: ${val}` },
+      }));
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.message).toContain('key1: Invalid: invalid1');
@@ -437,13 +437,10 @@ describe('Validation Utilities', () => {
 
   describe('validateUnion', () => {
     it('should validate value matching first validator', () => {
-      const result = validateUnion(
-        'test',
-        [
-          (val) => ({ success: true, data: val as string }),
-          (val) => ({ success: false, error: { message: 'Error' } }),
-        ]
-      );
+      const result = validateUnion('test', [
+        (val) => ({ success: true, data: val as string }),
+        (_val) => ({ success: false, error: { message: 'Error' } }),
+      ]);
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBe('test');
@@ -451,13 +448,10 @@ describe('Validation Utilities', () => {
     });
 
     it('should validate value matching second validator', () => {
-      const result = validateUnion(
-        42,
-        [
-          (val) => ({ success: false, error: { message: 'Not string' } }),
-          (val) => ({ success: true, data: val as number }),
-        ]
-      );
+      const result = validateUnion(42, [
+        (_val) => ({ success: false, error: { message: 'Not string' } }),
+        (val) => ({ success: true, data: val as number }),
+      ]);
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBe(42);
@@ -465,13 +459,10 @@ describe('Validation Utilities', () => {
     });
 
     it('should reject value matching none of the validators', () => {
-      const result = validateUnion(
-        'invalid',
-        [
-          (val) => ({ success: false, error: { message: 'Error 1' } }),
-          (val) => ({ success: false, error: { message: 'Error 2' } }),
-        ]
-      );
+      const result = validateUnion('invalid', [
+        (_val) => ({ success: false, error: { message: 'Error 1' } }),
+        (_val) => ({ success: false, error: { message: 'Error 2' } }),
+      ]);
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.message).toContain('None of the validators passed');
@@ -481,4 +472,3 @@ describe('Validation Utilities', () => {
     });
   });
 });
-
