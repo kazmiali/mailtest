@@ -48,9 +48,6 @@ export default defineConfig({
     // Hook timeout (ms)
     hookTimeout: 10000,
     
-    // Disable threads for better debugging
-    threads: true,
-    
     // Watch mode
     watch: false,
   },

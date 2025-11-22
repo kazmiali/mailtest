@@ -193,31 +193,36 @@ describe('Error Classes', () => {
       const errorCodes = Object.values(ErrorCode);
 
       for (const code of errorCodes) {
-        expect(ERROR_MESSAGES[code]).toBeDefined();
-        expect(ERROR_MESSAGES[code].message).toBeTruthy();
-        expect(ERROR_MESSAGES[code].severity).toMatch(/^(warning|error|critical)$/);
+        const message = ERROR_MESSAGES[code];
+        expect(message).toBeDefined();
+        expect(message!.message).toBeTruthy();
+        expect(message!.severity).toMatch(/^(warning|error|critical)$/);
       }
     });
 
     it('should have appropriate severity levels', () => {
-      expect(ERROR_MESSAGES[ErrorCode.TYPO_DETECTED].severity).toBe('warning');
-      expect(ERROR_MESSAGES[ErrorCode.RATE_LIMIT_EXCEEDED].severity).toBe('warning');
-      expect(ERROR_MESSAGES[ErrorCode.REGEX_INVALID_FORMAT].severity).toBe('error');
-      expect(ERROR_MESSAGES[ErrorCode.SMTP_MAILBOX_NOT_FOUND].severity).toBe('error');
+      expect(ERROR_MESSAGES[ErrorCode.TYPO_DETECTED]?.severity).toBe('warning');
+      expect(ERROR_MESSAGES[ErrorCode.RATE_LIMIT_EXCEEDED]?.severity).toBe('warning');
+      expect(ERROR_MESSAGES[ErrorCode.REGEX_INVALID_FORMAT]?.severity).toBe('error');
+      expect(ERROR_MESSAGES[ErrorCode.SMTP_MAILBOX_NOT_FOUND]?.severity).toBe('error');
     });
 
     it('should have suggestions for most errors', () => {
-      expect(ERROR_MESSAGES[ErrorCode.REGEX_INVALID_FORMAT].suggestion).toBeDefined();
-      expect(ERROR_MESSAGES[ErrorCode.DISPOSABLE_DOMAIN].suggestion).toBeDefined();
-      expect(ERROR_MESSAGES[ErrorCode.MX_NOT_FOUND].suggestion).toBeDefined();
+      expect(ERROR_MESSAGES[ErrorCode.REGEX_INVALID_FORMAT]?.suggestion).toBeDefined();
+      expect(ERROR_MESSAGES[ErrorCode.DISPOSABLE_DOMAIN]?.suggestion).toBeDefined();
+      expect(ERROR_MESSAGES[ErrorCode.MX_NOT_FOUND]?.suggestion).toBeDefined();
     });
 
     it('should have function suggestions for typo errors', () => {
       const typoMessage = ERROR_MESSAGES[ErrorCode.TYPO_DETECTED];
-      expect(typeof typoMessage.suggestion).toBe('function');
+      expect(typoMessage).toBeDefined();
+      expect(typeof typoMessage!.suggestion).toBe('function');
 
-      const suggestion = typoMessage.suggestion?.({ suggestion: 'gmail.com' });
-      expect(suggestion).toBe('Did you mean gmail.com?');
+      const suggestionFn = typoMessage!.suggestion;
+      if (typeof suggestionFn === 'function') {
+        const suggestion = suggestionFn({ suggestion: 'gmail.com' });
+        expect(suggestion).toBe('Did you mean gmail.com?');
+      }
     });
   });
 

@@ -245,9 +245,7 @@ describe('ConfigManager', () => {
     });
 
     it('should handle undefined timeout', () => {
-      const config = new ConfigManager({
-        timeout: undefined,
-      });
+      const config = new ConfigManager({});
 
       const merged = config.get();
       expect(merged.timeout).toBeUndefined();
@@ -261,9 +259,9 @@ describe('ConfigManager', () => {
       });
 
       const merged = config.get();
-      expect(merged.validators.custom.enabled).toBe(true);
+      const customValidator = merged.validators.custom;
+      expect(customValidator).toBeDefined();
+      expect(customValidator?.enabled).toBe(true);
     });
   });
 });
-
-

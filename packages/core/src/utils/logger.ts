@@ -8,22 +8,18 @@
 
 // Console methods (available in Node.js runtime)
 const logDebug = (...args: unknown[]): void => {
-  // @ts-expect-error - console is available in Node.js runtime
   console.debug(...args);
 };
 
 const logInfo = (...args: unknown[]): void => {
-  // @ts-expect-error - console is available in Node.js runtime
   console.info(...args);
 };
 
 const logWarn = (...args: unknown[]): void => {
-  // @ts-expect-error - console is available in Node.js runtime
   console.warn(...args);
 };
 
 const logError = (...args: unknown[]): void => {
-  // @ts-expect-error - console is available in Node.js runtime
   console.error(...args);
 };
 

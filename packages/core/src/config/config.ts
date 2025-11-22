@@ -88,9 +88,17 @@ export interface Config {
 
 /**
  * Merged configuration type (after processing)
+ * Standard validators are guaranteed to exist
  */
 export interface MergedConfig {
-  validators: Record<string, ValidatorConfig>;
+  validators: {
+    regex: ValidatorConfig;
+    typo: ValidatorConfig;
+    disposable: ValidatorConfig;
+    mx: ValidatorConfig;
+    smtp: ValidatorConfig;
+    [key: string]: ValidatorConfig; // For custom validators
+  };
   earlyExit: boolean;
   timeout: number | undefined;
 }
@@ -128,40 +136,73 @@ export class ConfigManager {
    * Priority: defaults -> preset -> user config
    */
   private mergeConfigurations(userConfig?: Partial<Config>): MergedConfig {
-    // Start with defaults
-    let merged: Partial<MergedConfig> = {
-      validators: {
-        regex: { enabled: defaultConfig.validators.regex.enabled },
-        typo: { enabled: defaultConfig.validators.typo.enabled },
-        disposable: {
-          enabled: defaultConfig.validators.disposable.enabled,
-        },
-        mx: { enabled: defaultConfig.validators.mx.enabled },
-        smtp: { enabled: defaultConfig.validators.smtp.enabled },
+    // Start with defaults - ensure all required validators are present
+    const mergedValidators: Record<string, ValidatorConfig | boolean> = {
+      regex: { enabled: defaultConfig.validators.regex.enabled },
+      typo: { enabled: defaultConfig.validators.typo.enabled },
+      disposable: {
+        enabled: defaultConfig.validators.disposable.enabled,
       },
-      earlyExit: defaultConfig.earlyExit,
-      timeout: defaultConfig.timeout ?? undefined,
+      mx: { enabled: defaultConfig.validators.mx.enabled },
+      smtp: { enabled: defaultConfig.validators.smtp.enabled },
     };
+    let earlyExit: boolean = defaultConfig.earlyExit;
+    let timeout: number | undefined = defaultConfig.timeout ?? undefined;
 
     // Apply preset if specified
     if (userConfig?.preset) {
       const preset = this.getPresetConfig(userConfig.preset);
-      merged = this.deepMerge(merged, preset);
+      if (preset.validators) {
+        // Filter out undefined values and merge
+        for (const [key, value] of Object.entries(preset.validators)) {
+          if (value !== undefined) {
+            mergedValidators[key] = value as ValidatorConfig | boolean;
+          }
+        }
+      }
+      if (preset.earlyExit !== undefined) {
+        earlyExit = preset.earlyExit;
+      }
     }
 
     // Apply user config (highest priority)
     if (userConfig) {
       const { preset: _preset, ...configWithoutPreset } = userConfig;
-      merged = this.deepMerge(merged, configWithoutPreset);
+      if (configWithoutPreset.validators) {
+        // Filter out undefined values and merge
+        for (const [key, value] of Object.entries(configWithoutPreset.validators)) {
+          if (value !== undefined) {
+            mergedValidators[key] = value as ValidatorConfig | boolean;
+          }
+        }
+      }
+      if (configWithoutPreset.earlyExit !== undefined) {
+        earlyExit = configWithoutPreset.earlyExit;
+      }
+      if (configWithoutPreset.timeout !== undefined) {
+        timeout = configWithoutPreset.timeout;
+      }
     }
 
     // Normalize validators (convert booleans to config objects)
-    const normalizedValidators = this.normalizeValidators(merged.validators ?? {});
+    const normalizedValidators = this.normalizeValidators(mergedValidators);
+
+    // Ensure all standard validators exist (guaranteed by type)
+    const validators: MergedConfig['validators'] = {
+      regex: normalizedValidators.regex ?? { enabled: defaultConfig.validators.regex.enabled },
+      typo: normalizedValidators.typo ?? { enabled: defaultConfig.validators.typo.enabled },
+      disposable: normalizedValidators.disposable ?? {
+        enabled: defaultConfig.validators.disposable.enabled,
+      },
+      mx: normalizedValidators.mx ?? { enabled: defaultConfig.validators.mx.enabled },
+      smtp: normalizedValidators.smtp ?? { enabled: defaultConfig.validators.smtp.enabled },
+      ...normalizedValidators, // Include custom validators
+    };
 
     return {
-      validators: normalizedValidators,
-      earlyExit: merged.earlyExit ?? false,
-      timeout: merged.timeout,
+      validators,
+      earlyExit,
+      timeout,
     };
   }
 
@@ -212,34 +253,6 @@ export class ConfigManager {
       default:
         return {};
     }
-  }
-
-  /**
-   * Deep merge two configuration objects
-   */
-  private deepMerge(target: Partial<MergedConfig>, source: Partial<Config>): Partial<MergedConfig> {
-    const result: Partial<MergedConfig> = { ...target };
-
-    // Merge validators
-    if (source.validators) {
-      result.validators = {
-        ...(result.validators ?? {}),
-        ...source.validators,
-      } as Record<string, ValidatorConfig>;
-    }
-
-    // Merge other properties
-    if (source.earlyExit !== undefined) {
-      result.earlyExit = source.earlyExit;
-    }
-
-    if (source.timeout !== undefined) {
-      result.timeout = source.timeout;
-    } else if (source.timeout === undefined && target.timeout === undefined) {
-      result.timeout = undefined;
-    }
-
-    return result;
   }
 
   /**
