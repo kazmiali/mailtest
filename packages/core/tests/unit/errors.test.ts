@@ -224,6 +224,24 @@ describe('Error Classes', () => {
         expect(suggestion).toBe('Did you mean gmail.com?');
       }
     });
+
+    it('should return default message when typo suggestion is missing', () => {
+      const typoMessage = ERROR_MESSAGES[ErrorCode.TYPO_DETECTED];
+      const suggestionFn = typoMessage!.suggestion;
+      if (typeof suggestionFn === 'function') {
+        const suggestion = suggestionFn();
+        expect(suggestion).toBe('Check the domain spelling');
+      }
+    });
+
+    it('should return default message when typo suggestion is undefined', () => {
+      const typoMessage = ERROR_MESSAGES[ErrorCode.TYPO_DETECTED];
+      const suggestionFn = typoMessage!.suggestion;
+      if (typeof suggestionFn === 'function') {
+        const suggestion = suggestionFn({ suggestion: undefined });
+        expect(suggestion).toBe('Check the domain spelling');
+      }
+    });
   });
 
   describe('error inheritance', () => {
@@ -240,6 +258,47 @@ describe('Error Classes', () => {
       expect(networkError).toBeInstanceOf(ValidationError);
       expect(timeoutError).toBeInstanceOf(Error);
       expect(timeoutError).toBeInstanceOf(ValidationError);
+    });
+  });
+
+  describe('ValidationError stack trace', () => {
+    it('should capture stack trace when available', () => {
+      const error = new ValidationError('Test', ErrorCode.NETWORK_ERROR);
+      // Stack trace capture is V8-specific, so we just verify it doesn't throw
+      expect(error.stack).toBeDefined();
+    });
+  });
+
+  describe('ValidationError toValidationError', () => {
+    it('should convert error without optional fields', () => {
+      const error = new ValidationError('Test error', ErrorCode.NETWORK_ERROR);
+      const errorType = error.toValidationError();
+
+      expect(errorType).toEqual({
+        code: ErrorCode.NETWORK_ERROR,
+        message: 'Test error',
+        severity: 'error',
+      });
+      expect(errorType.validator).toBeUndefined();
+      expect(errorType.details).toBeUndefined();
+    });
+
+    it('should convert error with validator but no details', () => {
+      const error = new ValidationError('Test error', ErrorCode.NETWORK_ERROR, 'mx');
+      const errorType = error.toValidationError();
+
+      expect(errorType.validator).toBe('mx');
+      expect(errorType.details).toBeUndefined();
+    });
+
+    it('should convert error with details but no validator', () => {
+      const error = new ValidationError('Test error', ErrorCode.NETWORK_ERROR, undefined, {
+        domain: 'example.com',
+      });
+      const errorType = error.toValidationError();
+
+      expect(errorType.validator).toBeUndefined();
+      expect(errorType.details).toEqual({ domain: 'example.com' });
     });
   });
 });

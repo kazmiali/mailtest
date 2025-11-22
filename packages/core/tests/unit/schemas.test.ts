@@ -7,6 +7,7 @@ import {
   validationResultSchema,
   presetSchema,
   configSchema,
+  errorCodeSchema,
 } from '../../src/schemas';
 import { ErrorCode } from '../../src/types';
 
@@ -371,6 +372,214 @@ describe('Validation Schemas', () => {
 
       const parsed = configSchema.safeParse(config);
       expect(parsed.success).toBe(false);
+    });
+  });
+
+  describe('errorCodeSchema', () => {
+    it('should validate ErrorCode enum value', () => {
+      const result = errorCodeSchema.safeParse(ErrorCode.REGEX_INVALID_FORMAT);
+      expect(result.success).toBe(true);
+    });
+
+    it('should validate custom string error code', () => {
+      const result = errorCodeSchema.safeParse('CUSTOM_ERROR_CODE');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBe('CUSTOM_ERROR_CODE');
+      }
+    });
+
+    it('should reject non-string value', () => {
+      const result = errorCodeSchema.safeParse(123);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.message).toContain('Expected string or ErrorCode enum');
+      }
+    });
+  });
+
+  describe('validatorOptionsSchema edge cases', () => {
+    it('should handle undefined validator values', () => {
+      const options = {
+        email: 'user@example.com',
+        validators: {
+          regex: true,
+          smtp: undefined,
+        },
+      };
+
+      const parsed = validatorOptionsSchema.safeParse(options);
+      expect(parsed.success).toBe(true);
+    });
+
+    it('should reject invalid validator config object', () => {
+      const options = {
+        email: 'user@example.com',
+        validators: {
+          regex: { enabled: 'invalid' as unknown as boolean },
+        },
+      };
+
+      const parsed = validatorOptionsSchema.safeParse(options);
+      expect(parsed.success).toBe(false);
+    });
+
+    it('should reject non-object validators', () => {
+      const options = {
+        email: 'user@example.com',
+        validators: 'not-object' as unknown as Record<string, unknown>,
+      };
+
+      const parsed = validatorOptionsSchema.safeParse(options);
+      expect(parsed.success).toBe(false);
+    });
+
+    it('should reject array as validators', () => {
+      const options = {
+        email: 'user@example.com',
+        validators: [] as unknown as Record<string, unknown>,
+      };
+
+      const parsed = validatorOptionsSchema.safeParse(options);
+      expect(parsed.success).toBe(false);
+    });
+
+    it('should handle multiple validator config errors', () => {
+      const options = {
+        email: 'user@example.com',
+        validators: {
+          regex: { enabled: 'invalid' as unknown as boolean },
+          smtp: { enabled: 'invalid' as unknown as boolean },
+        },
+      };
+
+      const parsed = validatorOptionsSchema.safeParse(options);
+      expect(parsed.success).toBe(false);
+      if (!parsed.success) {
+        expect(parsed.error.message).toContain('regex:');
+        expect(parsed.error.message).toContain('smtp:');
+      }
+    });
+  });
+
+  describe('validatorConfigSchema edge cases', () => {
+    it('should reject non-object value', () => {
+      const parsed = validatorConfigSchema.safeParse('not-object');
+      expect(parsed.success).toBe(false);
+      if (!parsed.success) {
+        expect(parsed.error.message).toBe('Expected object');
+      }
+    });
+
+    it('should reject array', () => {
+      const parsed = validatorConfigSchema.safeParse([]);
+      expect(parsed.success).toBe(false);
+    });
+
+    it('should reject invalid enabled value', () => {
+      const config = { enabled: 'not-boolean' as unknown as boolean };
+      const parsed = validatorConfigSchema.safeParse(config);
+      expect(parsed.success).toBe(false);
+    });
+  });
+
+  describe('validatorsResultSchema edge cases', () => {
+    it('should handle undefined validator results', () => {
+      const result = {
+        valid: true,
+        email: 'user@example.com',
+        score: 95,
+        validators: {
+          regex: { valid: true, validator: 'regex' },
+          smtp: undefined,
+        },
+      };
+
+      const parsed = validationResultSchema.safeParse(result);
+      expect(parsed.success).toBe(true);
+    });
+
+    it('should reject non-object validators', () => {
+      const result = {
+        valid: true,
+        email: 'user@example.com',
+        score: 95,
+        validators: 'not-object' as unknown as Record<string, unknown>,
+      };
+
+      const parsed = validationResultSchema.safeParse(result);
+      expect(parsed.success).toBe(false);
+    });
+
+    it('should reject array as validators', () => {
+      const result = {
+        valid: true,
+        email: 'user@example.com',
+        score: 95,
+        validators: [] as unknown as Record<string, unknown>,
+      };
+
+      const parsed = validationResultSchema.safeParse(result);
+      expect(parsed.success).toBe(false);
+    });
+
+    it('should reject invalid validator result', () => {
+      const result = {
+        valid: true,
+        email: 'user@example.com',
+        score: 95,
+        validators: {
+          regex: { valid: 'invalid' as unknown as boolean },
+        },
+      };
+
+      const parsed = validationResultSchema.safeParse(result);
+      expect(parsed.success).toBe(false);
+    });
+
+    it('should handle multiple validator result errors', () => {
+      const result = {
+        valid: true,
+        email: 'user@example.com',
+        score: 95,
+        validators: {
+          regex: { valid: 'invalid' as unknown as boolean },
+          smtp: { valid: 'invalid' as unknown as boolean },
+        },
+      };
+
+      const parsed = validationResultSchema.safeParse(result);
+      expect(parsed.success).toBe(false);
+      if (!parsed.success) {
+        expect(parsed.error.message).toContain('regex:');
+        expect(parsed.error.message).toContain('smtp:');
+      }
+    });
+  });
+
+  describe('validationErrorSchema edge cases', () => {
+    it('should handle validator field', () => {
+      const error = {
+        code: ErrorCode.REGEX_INVALID_FORMAT,
+        message: 'Invalid format',
+        severity: 'error' as const,
+        validator: 'regex',
+      };
+
+      const result = validationErrorSchema.safeParse(error);
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle details field', () => {
+      const error = {
+        code: ErrorCode.REGEX_INVALID_FORMAT,
+        message: 'Invalid format',
+        severity: 'error' as const,
+        details: { field: 'email' },
+      };
+
+      const result = validationErrorSchema.safeParse(error);
+      expect(result.success).toBe(true);
     });
   });
 });

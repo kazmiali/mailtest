@@ -264,4 +264,34 @@ describe('ConfigManager', () => {
       expect(customValidator?.enabled).toBe(true);
     });
   });
+
+  describe('getPresetConfig edge cases', () => {
+    it('should handle unknown preset gracefully', () => {
+      // This tests the default case in getPresetConfig switch statement
+      // We can't directly test it, but we can verify that invalid presets are caught by schema validation
+      expect(() => {
+        new ConfigManager({
+          preset: 'unknown-preset' as unknown as 'strict',
+        });
+      }).toThrow();
+    });
+  });
+
+  describe('normalizeValidators edge cases', () => {
+    it('should skip undefined validator values', () => {
+      const config = new ConfigManager({
+        validators: {
+          regex: true,
+          smtp: false,
+          // typo is intentionally omitted (undefined)
+        },
+      });
+
+      const merged = config.get();
+      // Typo should use default value since it wasn't specified
+      expect(merged.validators.typo.enabled).toBe(true); // Default
+      expect(merged.validators.regex.enabled).toBe(true);
+      expect(merged.validators.smtp.enabled).toBe(false);
+    });
+  });
 });
