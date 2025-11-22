@@ -41,5 +41,12 @@
     "node": ">=20.0.0",
     "yarn": ">=4.0.0"
   },
-  "packageManager": "yarn@4.0.2"
+  "packageManager": "yarn@4.0.2",
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@yarnpkg/pnpify": "^4.1.6",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  }
 }
