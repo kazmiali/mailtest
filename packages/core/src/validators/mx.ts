@@ -67,7 +67,6 @@ interface DNSResult {
  * Sleep utility for retry delays
  */
 function sleep(ms: number): Promise<void> {
-  // eslint-disable-next-line no-undef
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -91,7 +90,6 @@ async function resolveMXWithRetry(
     try {
       // Create a promise that rejects on timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
-        // eslint-disable-next-line no-undef
         setTimeout(() => reject(new Error('DNS lookup timeout')), timeout);
       });
 
@@ -145,7 +143,6 @@ async function resolveAWithRetry(
     try {
       // Create a promise that rejects on timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
-        // eslint-disable-next-line no-undef
         setTimeout(() => reject(new Error('DNS lookup timeout')), timeout);
       });
 

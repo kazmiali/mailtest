@@ -41,12 +41,14 @@ export {
   TypoValidator,
   DisposableValidator,
   MXValidator,
+  SMTPValidator,
 } from './validators';
 export type {
   RegexValidatorConfig,
   TypoValidatorConfig,
   DisposableValidatorConfig,
   MXValidatorConfig,
+  SMTPValidatorConfig,
 } from './validators';
 
 /**
