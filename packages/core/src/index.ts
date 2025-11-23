@@ -35,8 +35,8 @@ export { Logger, createLogger, getLogger } from './utils/logger';
 export type { LogLevel, LoggerConfig } from './utils/logger';
 
 // Export validators
-export { BaseValidator, RegexValidator } from './validators';
-export type { RegexValidatorConfig } from './validators';
+export { BaseValidator, RegexValidator, TypoValidator } from './validators';
+export type { RegexValidatorConfig, TypoValidatorConfig } from './validators';
 
 /**
  * Placeholder function for initial setup
