@@ -34,9 +34,13 @@ export {
 export { Logger, createLogger, getLogger } from './utils/logger';
 export type { LogLevel, LoggerConfig } from './utils/logger';
 
+// Export validators
+export { BaseValidator, RegexValidator } from './validators';
+export type { RegexValidatorConfig } from './validators';
+
 /**
  * Placeholder function for initial setup
- * Will be replaced with actual validation logic
+ * Will be replaced with actual validation logic in Phase 5
  */
 export function validateEmail(email: string): boolean {
   if (!email || typeof email !== 'string') {

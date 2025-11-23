@@ -1,29 +1,178 @@
 {
-  "valid": [
-    "user@example.com",
-    "test.user@example.com",
-    "user+tag@example.co.uk",
-    "user_name@example-domain.com",
-    "user123@test123.org",
-    "firstname.lastname@example.com",
-    "email@subdomain.example.com",
-    "1234567890@example.com"
-  ],
-  "invalid": [
-    "plainaddress",
-    "@no-local.com",
-    "no-at-sign.com",
-    "missing-domain@.com",
-    "missing@domain",
-    "two@@example.com",
-    "dotdot..@example.com",
-    "spaces in@example.com"
-  ],
-  "edge_cases": [
-    "user+tag+tag@example.com",
-    "user.name+tag@example.co.uk",
-    "x@example.com",
-    "very.long.email.address.with.many.dots@example.com"
-  ]
+  "valid": {
+    "basic": [
+      "user@example.com",
+      "test@test.com",
+      "email@example.org",
+      "firstname@example.net"
+    ],
+    "with_dots": [
+      "test.user@example.com",
+      "firstname.lastname@example.com",
+      "user.name.long@example.com",
+      "a.b.c@example.com"
+    ],
+    "with_plus": [
+      "user+tag@example.com",
+      "test+filter@example.com",
+      "email+spam@example.org",
+      "user+tag+tag@example.com"
+    ],
+    "with_underscore_hyphen": [
+      "user_name@example.com",
+      "test-user@example.com",
+      "user_name-test@example.com",
+      "a_b-c@example.com"
+    ],
+    "with_numbers": [
+      "user123@example.com",
+      "123@example.com",
+      "1234567890@example.com",
+      "test123user@example.com"
+    ],
+    "subdomains": [
+      "user@subdomain.example.com",
+      "test@mail.example.com",
+      "email@a.b.c.example.com",
+      "user@deep.sub.domain.example.com"
+    ],
+    "multiple_tld": [
+      "user@example.co.uk",
+      "test@example.com.au",
+      "email@example.org.uk",
+      "user@example.ac.jp"
+    ],
+    "short": [
+      "x@example.com",
+      "a@b.co",
+      "1@example.com",
+      "t@test.io"
+    ],
+    "special_chars": [
+      "user!test@example.com",
+      "user#test@example.com",
+      "user$test@example.com",
+      "user%test@example.com",
+      "user&test@example.com",
+      "user*test@example.com",
+      "user=test@example.com",
+      "user?test@example.com",
+      "user^test@example.com",
+      "user`test@example.com",
+      "user{test@example.com",
+      "user|test@example.com",
+      "user}test@example.com",
+      "user~test@example.com"
+    ],
+    "quoted_strings_strict": [
+      "\"user name\"@example.com",
+      "\"test@test\"@example.com",
+      "\"user..name\"@example.com"
+    ],
+    "ip_addresses": [
+      "user@192.168.1.1",
+      "test@10.0.0.1",
+      "email@255.255.255.255",
+      "user@[2001:db8::1]"
+    ]
+  },
+  "invalid": {
+    "no_at": [
+      "plainaddress",
+      "user.example.com",
+      "test",
+      "nodomain"
+    ],
+    "missing_local": [
+      "@example.com",
+      "@test.com",
+      "@domain.org"
+    ],
+    "missing_domain": [
+      "user@",
+      "test@",
+      "email@"
+    ],
+    "no_tld": [
+      "user@example",
+      "test@localhost",
+      "email@domain"
+    ],
+    "multiple_at": [
+      "user@@example.com",
+      "test@test@example.com",
+      "user@domain@example.com"
+    ],
+    "consecutive_dots": [
+      "user..name@example.com",
+      "test...user@example.com",
+      "user@example..com",
+      "test@domain...com"
+    ],
+    "leading_trailing_dots": [
+      ".user@example.com",
+      "user.@example.com",
+      "user@.example.com",
+      "user@example.com."
+    ],
+    "leading_trailing_hyphens": [
+      "user@-example.com",
+      "user@example-.com",
+      "user@-example-.com"
+    ],
+    "spaces": [
+      "user @example.com",
+      "user@ example.com",
+      "user name@example.com",
+      "user@exam ple.com"
+    ],
+    "invalid_chars_local": [
+      "user(name)@example.com",
+      "user[name]@example.com",
+      "user<name>@example.com",
+      "user,name@example.com",
+      "user;name@example.com",
+      "user:name@example.com"
+    ],
+    "too_long": [
+      "verylongemailaddressthatexceedsthemaximumlengthof64characters@example.com",
+      "user@verylongdomainnamethatshouldexceedthemaximumlengthof255characterswhichisquitealongnamebutwecanmakeitevenlongerbyaddingmoreandmorecharactersuntilwereachtheactuallimitthisisreallyridiculouslylongandnobodyshouldeverusesuchalongdomainnameinreallifesituations.com"
+    ],
+    "short_tld": [
+      "user@example.c",
+      "test@domain.x"
+    ],
+    "special_cases": [
+      "user@",
+      "@example.com",
+      "user @example.com",
+      "user@exam ple.com",
+      "",
+      " ",
+      "@"
+    ]
+  },
+  "edge_cases": {
+    "boundary": [
+      "a@b.co",
+      "1@2.io",
+      "user@example.museum",
+      "test@example.technology"
+    ],
+    "mixed_case": [
+      "User@Example.COM",
+      "TEST@test.COM",
+      "MixedCase@MixedDomain.COM"
+    ],
+    "whitespace": [
+      " user@example.com",
+      "user@example.com ",
+      " user@example.com "
+    ],
+    "unicode": [
+      "user@名がドメイン.com",
+      "test@münchen.de",
+      "email@москва.рф"
+    ]
+  }
 }
-

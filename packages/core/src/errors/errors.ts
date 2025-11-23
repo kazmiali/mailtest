@@ -10,6 +10,9 @@ import {
   type ValidationError as ValidationErrorType,
 } from '../types';
 
+// Re-export ErrorCode for convenience
+export { ErrorCode };
+
 /**
  * Base validation error class
  *
