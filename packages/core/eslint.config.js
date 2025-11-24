@@ -26,6 +26,10 @@ export default [
         __filename: 'readonly',
         NodeJS: 'readonly',
         performance: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
       },
     },
     plugins: {
@@ -58,7 +62,7 @@ export default [
       '@typescript-eslint/no-non-null-assertion': 'warn',
 
       // General rules
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': ['off', { allow: ['warn', 'error'] }],
       'no-debugger': 'error',
       'prefer-const': 'error',
       'no-var': 'error',
@@ -84,6 +88,10 @@ export default [
         __filename: 'readonly',
         NodeJS: 'readonly',
         performance: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
         describe: 'readonly',
         it: 'readonly',
         expect: 'readonly',
@@ -112,6 +120,34 @@ export default [
       'no-var': 'error',
       eqeqeq: ['error', 'always'],
       curly: ['error', 'all'],
+    },
+  },
+
+  // JavaScript/ESM files (test scripts, etc.)
+  {
+    files: ['*.mjs', '*.cjs', '*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        NodeJS: 'readonly',
+        performance: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'prefer-const': 'error',
+      'no-var': 'error',
     },
   },
 

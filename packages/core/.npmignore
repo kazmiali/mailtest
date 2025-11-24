@@ -1,0 +1,24 @@
+# Source maps (too large for npm)
+*.map
+
+# Source files
+src/
+*.ts
+!*.d.ts
+
+# Test files
+tests/
+*.test.ts
+*.spec.ts
+
+# Config files
+tsup.config.ts
+tsconfig.json
+vitest.config.ts
+.eslintrc.js
+.prettierrc
+
+# Development files
+node_modules/
+.git/
+.gitignore

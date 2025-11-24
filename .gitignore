@@ -12,6 +12,7 @@ node_modules/
 dist/
 build/
 *.tsbuildinfo
+*.map
 
 # Test coverage
 coverage/
@@ -52,6 +53,7 @@ Thumbs.db
 *~
 .claude/
 .cursor/
+.commandcode/
 
 # Temporary files
 *.tmp

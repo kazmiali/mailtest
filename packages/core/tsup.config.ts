@@ -10,7 +10,7 @@ export default defineConfig({
   // Generate TypeScript declaration files
   dts: true,
   
-  // Generate source maps for debugging
+  // Generate source maps for debugging (but exclude from npm package)
   sourcemap: true,
   
   // Clean output directory before build
@@ -19,8 +19,8 @@ export default defineConfig({
   // Code splitting for better tree-shaking
   splitting: false,
   
-  // Minification (disabled for better debugging in v1.0)
-  minify: false,
+  // Minification for smaller bundle size
+  minify: true,
   
   // Target environment
   target: 'node20',
@@ -28,13 +28,16 @@ export default defineConfig({
   // Output directory
   outDir: 'dist',
   
-  // External dependencies (don't bundle)
-  external: [],
+  // External dependencies (don't bundle - let users install them)
+  external: ['disposable-email-domains', 'mailcheck'],
+  
+  // Don't bundle dependencies - they'll be installed separately
+  // This reduces bundle size significantly
   
   // Tree shaking
   treeshake: true,
   
-  // Skip node_modules
+  // Skip node_modules (but noExternal overrides this for specific packages)
   skipNodeModulesBundle: true,
 });
 
