@@ -89,7 +89,7 @@ export type {
 /**
  * Simple email validation function
  *
- * Validates an email address using the default configuration (balanced preset).
+ * Validates an email address using the default configuration (strict preset - all validators enabled).
  * For custom configuration, use `createValidator()` instead.
  *
  * @param email - Email address to validate

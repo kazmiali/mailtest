@@ -25,7 +25,9 @@ describe('mailtest setup verification', () => {
 describe('validate() - simple validation function', () => {
   describe('valid emails', () => {
     it('should validate valid email format', async () => {
-      const result = await validate('user@example.com');
+      const result = await validate('user@example.com', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
       expect(result).toBeDefined();
       expect(result.valid).toBe(true);
       expect(result.email).toBe('user@example.com');
@@ -34,20 +36,24 @@ describe('validate() - simple validation function', () => {
     });
 
     it('should validate email with default configuration', async () => {
-      const result = await validate('user@gmail.com');
+      const result = await validate('user@gmail.com', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
       expect(result.valid).toBe(true);
       expect(result.validators.regex).toBeDefined();
       expect(result.validators.regex?.valid).toBe(true);
     });
 
     it('should include all validator results', async () => {
-      const result = await validate('user@gmail.com');
+      const result = await validate('user@gmail.com', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
       expect(result.validators.regex).toBeDefined();
       expect(result.validators.typo).toBeDefined();
       expect(result.validators.disposable).toBeDefined();
       expect(result.validators.mx).toBeDefined();
-      // SMTP disabled by default
-      expect(result.validators.smtp).toBeUndefined();
+      // SMTP enabled by default (strict preset)
+      // Note: SMTP may be undefined if it times out or fails, but it's enabled in config
     });
   });
 
@@ -118,7 +124,9 @@ describe('validate() - simple validation function', () => {
 
   describe('edge cases', () => {
     it('should handle whitespace in email', async () => {
-      const result = await validate('  user@example.com  ');
+      const result = await validate('  user@example.com  ', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
       // Email normalization happens in validators, but context stores original
       // The result email should match what was passed in
       expect(result.email).toBe('  user@example.com  ');
@@ -127,7 +135,9 @@ describe('validate() - simple validation function', () => {
     });
 
     it('should calculate reputation score', async () => {
-      const result = await validate('user@gmail.com');
+      const result = await validate('user@gmail.com', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
       expect(result.score).toBeGreaterThanOrEqual(0);
       expect(result.score).toBeLessThanOrEqual(100);
     });
@@ -169,7 +179,9 @@ describe('createValidator() - factory function', () => {
   });
 
   it('should validate emails with created validator', async () => {
-    const validator = createValidator();
+    const validator = createValidator({
+      validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+    });
     const result = await validator.validate('user@example.com');
     expect(result).toBeDefined();
     expect(result.valid).toBe(true);

@@ -11,8 +11,8 @@ describe('ConfigManager', () => {
       expect(merged.validators.typo.enabled).toBe(true);
       expect(merged.validators.disposable.enabled).toBe(true);
       expect(merged.validators.mx.enabled).toBe(true);
-      expect(merged.validators.smtp.enabled).toBe(false); // Disabled by default
-      expect(merged.earlyExit).toBe(false);
+      expect(merged.validators.smtp.enabled).toBe(true); // Enabled by default (strict)
+      expect(merged.earlyExit).toBe(true); // Early exit enabled by default (strict)
     });
   });
 
@@ -197,7 +197,7 @@ describe('ConfigManager', () => {
 
       expect(config.getValue<boolean>('validators.smtp.enabled')).toBe(true);
       expect(config.getValue<boolean>('validators.regex.enabled')).toBe(true);
-      expect(config.getValue<boolean>('earlyExit')).toBe(false);
+      expect(config.getValue<boolean>('earlyExit')).toBe(true); // Default is strict (early exit enabled)
     });
 
     it('should throw error for non-existent key', () => {

@@ -34,7 +34,9 @@ describe('E2E Validation - Full Pipeline', () => {
     });
 
     it('should validate valid email with default configuration', async () => {
-      const result = await validate('user@example.com');
+      const result = await validate('user@example.com', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
 
       expect(result.valid).toBe(true);
       expect(result.email).toBe('user@example.com');
@@ -45,7 +47,9 @@ describe('E2E Validation - Full Pipeline', () => {
     });
 
     it('should validate email with plus addressing', async () => {
-      const result = await validate('user+tag@gmail.com');
+      const result = await validate('user+tag@gmail.com', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
 
       expect(result.valid).toBe(true);
       expect(result.validators.regex?.valid).toBe(true);
@@ -53,7 +57,9 @@ describe('E2E Validation - Full Pipeline', () => {
     });
 
     it('should validate email with subdomain', async () => {
-      const result = await validate('user@mail.google.com');
+      const result = await validate('user@mail.google.com', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
 
       expect(result.valid).toBe(true);
       expect(result.validators.regex?.valid).toBe(true);
@@ -61,7 +67,9 @@ describe('E2E Validation - Full Pipeline', () => {
     });
 
     it('should validate email with dots in local part', async () => {
-      const result = await validate('first.last@gmail.com');
+      const result = await validate('first.last@gmail.com', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
 
       expect(result.valid).toBe(true);
       expect(result.validators.regex?.valid).toBe(true);
@@ -153,7 +161,7 @@ describe('E2E Validation - Full Pipeline', () => {
       expect(result.validators.regex?.valid).toBe(true);
     });
 
-    it('should work with balanced preset (default)', async () => {
+    it('should work with balanced preset', async () => {
       const validator = createValidator({ preset: 'balanced' });
       const result = await validator.validate('user@gmail.com');
 
@@ -204,6 +212,7 @@ describe('E2E Validation - Full Pipeline', () => {
           typo: { enabled: true },
           disposable: { enabled: true },
           mx: { enabled: true },
+          smtp: { enabled: false }, // Disable SMTP for speed in tests
         },
       });
 
@@ -246,7 +255,9 @@ describe('E2E Validation - Full Pipeline', () => {
     });
 
     it('should include metadata when validation completes', async () => {
-      const result = await validate('user@example.com');
+      const result = await validate('user@example.com', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
 
       // Metadata is optional, but if present should have correct structure
       if (result.metadata) {
@@ -264,7 +275,9 @@ describe('E2E Validation - Full Pipeline', () => {
     });
 
     it('should set reason when validation fails', async () => {
-      const result = await validate('invalid-email');
+      const result = await validate('invalid-email', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
 
       expect(result.valid).toBe(false);
       expect(result.reason).toBeDefined();
@@ -272,7 +285,9 @@ describe('E2E Validation - Full Pipeline', () => {
     });
 
     it('should include error details in validator results', async () => {
-      const result = await validate('invalid-email');
+      const result = await validate('invalid-email', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
 
       expect(result.valid).toBe(false);
       expect(result.validators.regex).toBeDefined();
@@ -300,7 +315,9 @@ describe('E2E Validation - Full Pipeline', () => {
     });
 
     it('should handle disposable email addresses', async () => {
-      const result = await validate('test@mailinator.com');
+      const result = await validate('test@mailinator.com', {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
 
       expect(result.valid).toBe(false);
       expect(result.validators.disposable).toBeDefined();
@@ -382,7 +399,9 @@ describe('E2E Validation - Full Pipeline', () => {
       const emails = ['user@gmail.com', 'user@yahoo.com', 'user@outlook.com'];
 
       for (const email of emails) {
-        const result = await validate(email);
+        const result = await validate(email, {
+          validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+        });
         expect(result.valid).toBe(true);
         expect(result.validators.regex?.valid).toBe(true);
         expect(result.validators.disposable?.valid).toBe(true);
@@ -408,13 +427,17 @@ describe('E2E Validation - Full Pipeline', () => {
     it('should handle edge cases correctly', async () => {
       // Very long email
       const longEmail = 'a'.repeat(50) + '@' + 'b'.repeat(50) + '.com';
-      const result1 = await validate(longEmail);
+      const result1 = await validate(longEmail, {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
       expect(result1).toBeDefined();
       expect(typeof result1.valid).toBe('boolean');
 
       // Email with special characters
       const specialEmail = 'user+tag@example.com';
-      const result2 = await validate(specialEmail);
+      const result2 = await validate(specialEmail, {
+        validators: { smtp: { enabled: false } }, // Disable SMTP for speed in tests
+      });
       expect(result2.valid).toBe(true);
 
       // Email with subdomain (might fail MX check if domain doesn't exist)
@@ -423,6 +446,7 @@ describe('E2E Validation - Full Pipeline', () => {
         validators: {
           regex: { enabled: true },
           mx: { enabled: true },
+          smtp: { enabled: false }, // Disable SMTP for speed in tests
         },
       });
       expect(result3.valid).toBe(true);

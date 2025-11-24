@@ -11,6 +11,7 @@ import type { ValidatorConfig } from '../types';
 
 /**
  * Default configuration
+ * Same as strict preset: all validators enabled, early exit on first failure
  */
 const defaultConfig = {
   validators: {
@@ -18,9 +19,9 @@ const defaultConfig = {
     typo: { enabled: true },
     disposable: { enabled: true },
     mx: { enabled: true },
-    smtp: { enabled: false }, // Disabled by default (slow)
+    smtp: { enabled: true },
   },
-  earlyExit: false,
+  earlyExit: true,
   timeout: undefined,
 } as const;
 
@@ -40,7 +41,7 @@ const strictPreset = {
 } as const;
 
 /**
- * Balanced preset configuration (default)
+ * Balanced preset configuration
  * Most validators enabled, SMTP disabled for speed
  */
 const balancedPreset = {
