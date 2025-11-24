@@ -1,238 +1,292 @@
 /**
- * Test All Validators
+ * Test All Validators - Phase 5 Complete
  * 
- * Tests email validation with all available validators
+ * Tests email validation using the full orchestrator pipeline (Phase 5)
+ * Uses the public API: validate() and createValidator()
  * Run with: node test-all-validators.mjs
  */
 
-import {
-  RegexValidator,
-  TypoValidator,
-  DisposableValidator,
-  MXValidator,
-  SMTPValidator,
-} from './dist/index.js';
+import { validate, createValidator } from './dist/index.js';
 
 /**
- * Test email validation with all validators
+ * Format validator result for display
  * 
- * @param {string} email - Email address to validate
+ * @param {string} name - Validator name
+ * @param {object} result - Validator result
  */
-async function testEmail(email) {
-  console.log(`\n${'='.repeat(80)}`);
-  console.log(`Testing: ${email}`);
-  console.log('='.repeat(80));
-
-  const results = {
-    email,
-    validators: {},
-    overall: {
-      valid: true,
-      failedValidators: [],
-    },
-  };
-
-  // 1. Regex Validator
-  console.log('\n1. Regex Validator:');
-  console.log('-'.repeat(80));
-  try {
-    const regexValidator = new RegexValidator({ mode: 'loose' });
-    const regexResult = await regexValidator.validate(email);
-    results.validators.regex = regexResult;
-    
-    console.log(`   Valid: ${regexResult.valid}`);
-    if (regexResult.error) {
-      console.log(`   Error: ${regexResult.error.message}`);
-      console.log(`   Code: ${regexResult.error.code}`);
-      results.overall.valid = false;
-      results.overall.failedValidators.push('regex');
-    } else {
-      console.log('   ✓ Email format is valid');
-    }
-  } catch (error) {
-    console.log(`   ✗ Error: ${error.message}`);
-    results.overall.valid = false;
-    results.overall.failedValidators.push('regex');
+function displayValidatorResult(name, result) {
+  if (!result) {
+    console.log(`   ⚠ ${name}: Not run (disabled or skipped)`);
+    return;
   }
 
-  // 2. Typo Validator
-  console.log('\n2. Typo Validator:');
-  console.log('-'.repeat(80));
-  try {
-    const typoValidator = new TypoValidator();
-    const typoResult = await typoValidator.validate(email);
-    results.validators.typo = typoResult;
-    
-    console.log(`   Valid: ${typoResult.valid}`);
-    if (typoResult.error) {
-      console.log(`   Warning: ${typoResult.error.message}`);
-      console.log(`   Suggestion: ${typoResult.error.suggestion || 'N/A'}`);
-      console.log(`   Code: ${typoResult.error.code}`);
-      // Typo is a warning, not a failure
-    } else {
-      console.log('   ✓ No typo detected');
+  const status = result.valid ? '✓' : '✗';
+  console.log(`   ${status} ${name}: ${result.valid ? 'PASSED' : 'FAILED'}`);
+
+  if (result.error) {
+    console.log(`      Error: ${result.error.message}`);
+    console.log(`      Code: ${result.error.code}`);
+    console.log(`      Severity: ${result.error.severity}`);
+    if (result.error.suggestion) {
+      console.log(`      Suggestion: ${result.error.suggestion}`);
     }
-    if (typoResult.details?.suggestion) {
-      console.log(`   Suggested: ${typoResult.details.suggestion}`);
-    }
-  } catch (error) {
-    console.log(`   ✗ Error: ${error.message}`);
   }
 
-  // 3. Disposable Validator
-  console.log('\n3. Disposable Email Validator:');
-  console.log('-'.repeat(80));
-  try {
-    const disposableValidator = new DisposableValidator();
-    const disposableResult = await disposableValidator.validate(email);
-    results.validators.disposable = disposableResult;
-    
-    console.log(`   Valid: ${disposableResult.valid}`);
-    if (disposableResult.error) {
-      console.log(`   Error: ${disposableResult.error.message}`);
-      console.log(`   Code: ${disposableResult.error.code}`);
-      console.log(`   Reason: ${disposableResult.error.details?.reason || 'N/A'}`);
-      results.overall.valid = false;
-      results.overall.failedValidators.push('disposable');
-    } else {
-      console.log('   ✓ Email is not disposable');
+  // Display validator-specific details
+  if (result.details) {
+    const details = result.details;
+
+    // Regex details
+    if (details.mode) {
+      console.log(`      Mode: ${details.mode}`);
     }
-  } catch (error) {
-    console.log(`   ✗ Error: ${error.message}`);
-    results.overall.valid = false;
-    results.overall.failedValidators.push('disposable');
-  }
 
-  // 4. MX Record Validator
-  console.log('\n4. MX Record Validator:');
-  console.log('-'.repeat(80));
-  try {
-    const mxValidator = new MXValidator({
-      timeout: 10000,
-      retries: 2,
-      fallbackToA: true,
-    });
-    const mxResult = await mxValidator.validate(email);
-    results.validators.mx = mxResult;
-    
-    console.log(`   Valid: ${mxResult.valid}`);
-    if (mxResult.error) {
-      console.log(`   Error: ${mxResult.error.message}`);
-      console.log(`   Code: ${mxResult.error.code}`);
-      results.overall.valid = false;
-      results.overall.failedValidators.push('mx');
-    } else {
-      const details = mxResult.details || {};
-      console.log(`   ✓ Domain has mail servers configured`);
-      console.log(`   Has MX Records: ${details.hasMX || false}`);
-      console.log(`   Has A Records: ${details.hasA || false}`);
-      console.log(`   Quality Score: ${details.quality || 0}/20`);
-      console.log(`   Record Count: ${details.recordCount || 0}`);
-      
-      if (details.mxRecords && details.mxRecords.length > 0) {
-        console.log(`   MX Records:`);
-        details.mxRecords.forEach((record, index) => {
-          console.log(`     ${index + 1}. Priority: ${record.priority}, Exchange: ${record.exchange}`);
-        });
-      }
-      
-      if (details.aRecords && details.aRecords.length > 0) {
-        console.log(`   A Records (fallback):`);
-        details.aRecords.forEach((record, index) => {
-          console.log(`     ${index + 1}. ${record.address}`);
-        });
-      }
+    // Typo details
+    if (details.suggestion) {
+      console.log(`      Suggested: ${details.suggestion}`);
     }
-  } catch (error) {
-    console.log(`   ✗ Error: ${error.message}`);
-    results.overall.valid = false;
-    results.overall.failedValidators.push('mx');
-  }
-
-  // 5. SMTP Validator
-  console.log('\n5. SMTP Validator:');
-  console.log('-'.repeat(80));
-  try {
-    const smtpValidator = new SMTPValidator({
-      timeout: 15000,
-      retries: 1,
-      tlsRequired: false,
-      verifyMailbox: true,
-    });
-    const smtpResult = await smtpValidator.validate(email);
-    results.validators.smtp = smtpResult;
-    
-    console.log(`   Valid: ${smtpResult.valid}`);
-    if (smtpResult.error) {
-      console.log(`   Error: ${smtpResult.error.message}`);
-      console.log(`   Code: ${smtpResult.error.code}`);
-      const errorDetails = smtpResult.error.details || {};
-      if (errorDetails.greylisted) {
-        console.log(`   ⚠ Greylisted (temporary failure - mailbox may exist)`);
-      }
-      results.overall.valid = false;
-      results.overall.failedValidators.push('smtp');
-    } else {
-      const details = smtpResult.details || {};
-      console.log(`   ✓ Mailbox verification successful`);
-      console.log(`   Mailbox Exists: ${details.mailboxExists !== false ? 'Yes' : 'No'}`);
-      console.log(`   MX Host: ${details.mxHost || 'N/A'}`);
-      console.log(`   Port: ${details.port || 'N/A'}`);
-      console.log(`   TLS Used: ${details.tlsUsed ? 'Yes' : 'No'}`);
-      if (details.code) {
-        console.log(`   SMTP Response Code: ${details.code}`);
-      }
-      if (details.message) {
-        console.log(`   SMTP Response: ${details.message}`);
-      }
+    if (details.confidence) {
+      console.log(`      Confidence: ${details.confidence}`);
     }
-  } catch (error) {
-    console.log(`   ✗ Error: ${error.message}`);
-    results.overall.valid = false;
-    results.overall.failedValidators.push('smtp');
-  }
 
-  // Summary
-  console.log('\n' + '='.repeat(80));
-  console.log('SUMMARY:');
-  console.log('='.repeat(80));
-  console.log(`Email: ${email}`);
-  console.log(`Overall Valid: ${results.overall.valid ? '✓ YES' : '✗ NO'}`);
-  
-  if (results.overall.failedValidators.length > 0) {
-    console.log(`Failed Validators: ${results.overall.failedValidators.join(', ')}`);
-  } else {
-    console.log('All validators passed!');
-  }
+    // Disposable details
+    if (details.reason) {
+      console.log(`      Reason: ${details.reason}`);
+    }
 
-  return results;
+    // MX details
+    if (details.hasMX !== undefined) {
+      console.log(`      Has MX Records: ${details.hasMX}`);
+    }
+    if (details.hasA !== undefined) {
+      console.log(`      Has A Records: ${details.hasA}`);
+    }
+    if (details.quality !== undefined) {
+      console.log(`      Quality Score: ${details.quality}/20`);
+    }
+    if (details.recordCount !== undefined) {
+      console.log(`      Record Count: ${details.recordCount}`);
+    }
+    if (details.mxRecords && details.mxRecords.length > 0) {
+      console.log(`      MX Records:`);
+      details.mxRecords.forEach((record, index) => {
+        console.log(`        ${index + 1}. Priority: ${record.priority}, Exchange: ${record.exchange}`);
+      });
+    }
+    if (details.aRecords && details.aRecords.length > 0) {
+      console.log(`      A Records (fallback):`);
+      details.aRecords.forEach((record, index) => {
+        console.log(`        ${index + 1}. ${record.address}`);
+      });
+    }
+
+    // SMTP details
+    if (details.mailboxExists !== undefined) {
+      console.log(`      Mailbox Exists: ${details.mailboxExists ? 'Yes' : 'No'}`);
+    }
+    if (details.mxHost) {
+      console.log(`      MX Host: ${details.mxHost}`);
+    }
+    if (details.port) {
+      console.log(`      Port: ${details.port}`);
+    }
+    if (details.tlsUsed !== undefined) {
+      console.log(`      TLS Used: ${details.tlsUsed ? 'Yes' : 'No'}`);
+    }
+    if (details.code) {
+      console.log(`      SMTP Response Code: ${details.code}`);
+    }
+    if (details.message) {
+      console.log(`      SMTP Response: ${details.message}`);
+    }
+    if (details.greylisted) {
+      console.log(`      ⚠ Greylisted (temporary failure - mailbox may exist)`);
+    }
+  }
 }
 
 /**
- * Main function to test multiple emails
+ * Test email validation with full orchestrator pipeline
+ * 
+ * @param {string} email - Email address to validate
+ * @param {object} options - Optional validation options
+ */
+async function testEmail(email, options = {}) {
+  console.log(`\n${'='.repeat(80)}`);
+  console.log(`Testing: ${email}`);
+  if (Object.keys(options).length > 0) {
+    console.log(`Options: ${JSON.stringify(options, null, 2)}`);
+  }
+  console.log('='.repeat(80));
+
+  try {
+    const startTime = Date.now();
+    const result = await validate(email, options);
+    const duration = Date.now() - startTime;
+
+    // Display overall result
+    console.log('\n📊 VALIDATION RESULT:');
+    console.log('-'.repeat(80));
+    console.log(`   Email: ${result.email}`);
+    console.log(`   Valid: ${result.valid ? '✓ YES' : '✗ NO'}`);
+    console.log(`   Score: ${result.score}/100`);
+    if (result.reason) {
+      console.log(`   Failed Reason: ${result.reason}`);
+    }
+
+    // Display metadata
+    if (result.metadata) {
+      console.log(`\n⏱️  METADATA:`);
+      console.log('-'.repeat(80));
+      if (result.metadata.timestamp) {
+        console.log(`   Timestamp: ${result.metadata.timestamp}`);
+      }
+      if (result.metadata.duration !== undefined) {
+        console.log(`   Duration: ${result.metadata.duration}ms`);
+      } else {
+        console.log(`   Duration: ${duration}ms (measured)`);
+      }
+    }
+
+    // Display individual validator results
+    console.log(`\n🔍 VALIDATOR RESULTS:`);
+    console.log('-'.repeat(80));
+
+    if (result.validators.regex) {
+      console.log('\n1. Regex Validator:');
+      displayValidatorResult('Regex', result.validators.regex);
+    }
+
+    if (result.validators.typo) {
+      console.log('\n2. Typo Validator:');
+      displayValidatorResult('Typo', result.validators.typo);
+    }
+
+    if (result.validators.disposable) {
+      console.log('\n3. Disposable Email Validator:');
+      displayValidatorResult('Disposable', result.validators.disposable);
+    }
+
+    if (result.validators.mx) {
+      console.log('\n4. MX Record Validator:');
+      displayValidatorResult('MX', result.validators.mx);
+    }
+
+    if (result.validators.smtp) {
+      console.log('\n5. SMTP Validator:');
+      displayValidatorResult('SMTP', result.validators.smtp);
+    }
+
+    // Summary
+    console.log('\n' + '='.repeat(80));
+    console.log('SUMMARY:');
+    console.log('='.repeat(80));
+    console.log(`Email: ${result.email}`);
+    console.log(`Overall Valid: ${result.valid ? '✓ YES' : '✗ NO'}`);
+    console.log(`Reputation Score: ${result.score}/100`);
+    if (result.reason) {
+      console.log(`Failed Validator: ${result.reason}`);
+    }
+
+    const passedValidators = Object.values(result.validators).filter(r => r && r.valid).length;
+    const totalValidators = Object.keys(result.validators).length;
+    console.log(`Validators Passed: ${passedValidators}/${totalValidators}`);
+
+    return result;
+  } catch (error) {
+    console.log(`\n✗ FATAL ERROR: ${error.message}`);
+    if (error.stack) {
+      console.log(`\nStack trace:\n${error.stack}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Main function to test multiple emails with different configurations
  */
 async function main() {
   console.log('\n');
   console.log('╔══════════════════════════════════════════════════════════════════════════════╗');
   console.log('║                    EMAIL VALIDATION TEST SUITE                               ║');
-  console.log('║                    Testing All Available Validators                          ║');
+  console.log('║                    Phase 5: Orchestrator & Pipeline                         ║');
   console.log('╚══════════════════════════════════════════════════════════════════════════════╝');
 
-  // Test emails
+  // Test emails (keeping the same as before)
   const testEmails = [
     'ali.smak099@gmail.com',
     'ali.smak099@outlook.com',
     'info@songplace.io',
     'order@sumairatariq.com',
     'order@sumairaaatariq.com',
-    // Add more test emails here if needed
   ];
 
   const allResults = [];
 
+  // Test 1: Default configuration (balanced preset)
+  console.log('\n\n');
+  console.log('╔══════════════════════════════════════════════════════════════════════════════╗');
+  console.log('║                    TEST 1: Default Configuration (Balanced)                ║');
+  console.log('╚══════════════════════════════════════════════════════════════════════════════╝');
+
   for (const email of testEmails) {
     const result = await testEmail(email);
-    allResults.push(result);
+    allResults.push({ email, result, config: 'default' });
+  }
+
+  // Test 2: Strict preset
+  console.log('\n\n');
+  console.log('╔══════════════════════════════════════════════════════════════════════════════╗');
+  console.log('║                    TEST 2: Strict Preset                                    ║');
+  console.log('╚══════════════════════════════════════════════════════════════════════════════╝');
+
+  for (const email of testEmails.slice(0, 2)) {
+    const result = await testEmail(email, { preset: 'strict' });
+    allResults.push({ email, result, config: 'strict' });
+  }
+
+  // Test 3: Early exit configuration
+  console.log('\n\n');
+  console.log('╔══════════════════════════════════════════════════════════════════════════════╗');
+  console.log('║                    TEST 3: Early Exit Configuration                        ║');
+  console.log('╚══════════════════════════════════════════════════════════════════════════════╝');
+
+  for (const email of testEmails.slice(0, 2)) {
+    const result = await testEmail(email, { earlyExit: true });
+    allResults.push({ email, result, config: 'earlyExit' });
+  }
+
+  // Test 4: Using createValidator() factory
+  console.log('\n\n');
+  console.log('╔══════════════════════════════════════════════════════════════════════════════╗');
+  console.log('║                    TEST 4: Using createValidator() Factory                  ║');
+  console.log('╚══════════════════════════════════════════════════════════════════════════════╝');
+
+  const validator = createValidator({ preset: 'balanced' });
+  console.log(`\nCreated validator with config: ${JSON.stringify(validator.getConfig().preset, null, 2)}`);
+
+  for (const email of testEmails.slice(0, 2)) {
+    console.log(`\n${'='.repeat(80)}`);
+    console.log(`Testing: ${email} (using validator instance)`);
+    console.log('='.repeat(80));
+
+    try {
+      const startTime = Date.now();
+      const result = await validator.validate(email);
+      const duration = Date.now() - startTime;
+
+      console.log(`\n📊 RESULT:`);
+      console.log(`   Valid: ${result.valid ? '✓ YES' : '✗ NO'}`);
+      console.log(`   Score: ${result.score}/100`);
+      console.log(`   Duration: ${duration}ms`);
+      if (result.reason) {
+        console.log(`   Failed Reason: ${result.reason}`);
+      }
+
+      allResults.push({ email, result, config: 'factory' });
+    } catch (error) {
+      console.log(`\n✗ ERROR: ${error.message}`);
+    }
   }
 
   // Final summary
@@ -241,16 +295,32 @@ async function main() {
   console.log('║                         FINAL SUMMARY                                       ║');
   console.log('╚══════════════════════════════════════════════════════════════════════════════╝');
   
-  allResults.forEach((result, index) => {
-    console.log(`\n${index + 1}. ${result.email}`);
-    console.log(`   Status: ${result.overall.valid ? '✓ VALID' : '✗ INVALID'}`);
-    if (result.overall.failedValidators.length > 0) {
-      console.log(`   Failed: ${result.overall.failedValidators.join(', ')}`);
+  const summary = {};
+  allResults.forEach(({ email, result, config }) => {
+    if (!summary[email]) {
+      summary[email] = [];
     }
+    summary[email].push({ config, valid: result.valid, score: result.score, reason: result.reason });
+  });
+
+  Object.entries(summary).forEach(([email, tests]) => {
+    console.log(`\n📧 ${email}:`);
+    tests.forEach(({ config, valid, score, reason }) => {
+      const status = valid ? '✓ VALID' : '✗ INVALID';
+      const reasonStr = reason ? ` (failed: ${reason})` : '';
+      console.log(`   ${config.padEnd(15)} → ${status.padEnd(10)} Score: ${score}/100${reasonStr}`);
+    });
   });
 
   console.log('\n');
-  console.log('Available validators: Regex, Typo, Disposable, MX, SMTP\n');
+  console.log('✅ Phase 5 Features Tested:');
+  console.log('   • Validation Orchestrator & Pipeline');
+  console.log('   • Public API (validate() and createValidator())');
+  console.log('   • Result Formatter with metadata');
+  console.log('   • Early exit functionality');
+  console.log('   • Configuration presets');
+  console.log('   • All validators: Regex, Typo, Disposable, MX, SMTP');
+  console.log('\n');
 }
 
 // Run the tests
