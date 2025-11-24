@@ -9,6 +9,10 @@
 import { BaseValidator } from './base';
 import type { ValidatorResult } from '../types';
 import { ValidationError, ErrorCode } from '../errors/errors';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { createRequire } from 'module';
 
 /**
  * Configuration options for DisposableValidator
@@ -82,17 +86,44 @@ let disposableDomainsSet: Set<string> | null = null;
 /**
  * Load disposable domains from disposable-email-domains package
  * Uses lazy loading to avoid loading large dataset until needed
- * Works in both ESM and CJS contexts via dynamic require
+ * Works in both ESM and CJS contexts using createRequire
  *
  * @returns Set of disposable domain strings
  */
 function loadDisposableDomains(): Set<string> {
   if (disposableDomainsSet === null) {
-    // Use require for compatibility (tsup will handle bundling)
-    // In bundled output, this will work in both ESM and CJS
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef
-    const disposableDomains = require('disposable-email-domains');
-    disposableDomainsSet = new Set(disposableDomains);
+    try {
+      // Use createRequire to support both ESM and CJS contexts
+      const requireFn = createRequire(import.meta.url);
+      const disposableDomains = requireFn('disposable-email-domains');
+      disposableDomainsSet = new Set(Array.isArray(disposableDomains) ? disposableDomains : []);
+    } catch (requireError) {
+      // If require fails, try reading JSON file directly
+      try {
+        const requireFn = createRequire(import.meta.url);
+        const packagePath = requireFn.resolve('disposable-email-domains');
+        const jsonContent = readFileSync(packagePath, 'utf-8');
+        const disposableDomains = JSON.parse(jsonContent);
+        disposableDomainsSet = new Set(Array.isArray(disposableDomains) ? disposableDomains : []);
+      } catch (fileError) {
+        // Final fallback: try to find node_modules relative to current file
+        try {
+          const currentDir =
+            typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
+          const packagePath = join(
+            currentDir,
+            '../../node_modules/disposable-email-domains/index.json'
+          );
+          const jsonContent = readFileSync(packagePath, 'utf-8');
+          const disposableDomains = JSON.parse(jsonContent);
+          disposableDomainsSet = new Set(Array.isArray(disposableDomains) ? disposableDomains : []);
+        } catch (fallbackError) {
+          throw new Error(
+            `Failed to load disposable-email-domains. Require error: ${requireError instanceof Error ? requireError.message : String(requireError)}, File error: ${fileError instanceof Error ? fileError.message : String(fileError)}, Fallback error: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`
+          );
+        }
+      }
+    }
   }
   return disposableDomainsSet;
 }
