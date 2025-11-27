@@ -1,5 +1,5 @@
 /**
- * Custom error classes for mailtest
+ * Custom error classes for mailtester
  *
  * @packageDocumentation
  */

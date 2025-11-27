@@ -1,10 +1,10 @@
 /**
- * Public API tests for mailtest
+ * Public API tests for mailtester
  */
 import { describe, it, expect } from 'vitest';
 import { validate, createValidator, validateBulk, VERSION } from '../../src/index';
 
-describe('mailtest setup verification', () => {
+describe('mailtester setup verification', () => {
   it('should export VERSION constant', () => {
     expect(VERSION).toBeDefined();
     expect(typeof VERSION).toBe('string');

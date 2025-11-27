@@ -1,5 +1,5 @@
 /**
- * Configuration Manager for mailtest
+ * Configuration Manager for mailtester
  *
  * Handles configuration merging, presets, and validation
  *

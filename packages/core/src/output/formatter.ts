@@ -1,5 +1,5 @@
 /**
- * Result Formatter for mailtest
+ * Result Formatter for mailtester
  *
  * Formats validation results consistently and adds metadata like timestamp and duration.
  *

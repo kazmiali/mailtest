@@ -28,7 +28,7 @@ export interface SMTPValidatorConfig {
   retries?: number;
   /**
    * Sender email address for MAIL FROM command
-   * @default 'verify@mailtest.local'
+   * @default 'verify@mailtester.local'
    */
   sender?: string;
   /**
@@ -281,7 +281,7 @@ async function performSMTPVerification(
 }> {
   const timeout = config.timeout ?? 10000;
   const port = config.port ?? 25;
-  const sender = config.sender ?? 'verify@mailtest.local';
+  const sender = config.sender ?? 'verify@mailtester.local';
   const tlsRequired = config.tlsRequired ?? false;
   const verifyMailbox = config.verifyMailbox ?? true;
 
@@ -304,7 +304,7 @@ async function performSMTPVerification(
     }
 
     // Step 3: Send EHLO/HELO command
-    const hostname = 'mailtest.local';
+    const hostname = 'mailtester.local';
     const heloResponse = await sendSMTPCommand(socket, `EHLO ${hostname}`, timeout);
     if (heloResponse.code !== 250) {
       // Try HELO if EHLO fails
@@ -534,7 +534,7 @@ export class SMTPValidator extends BaseValidator {
 
     this.timeout = config?.timeout ?? 10000;
     this.retries = config?.retries ?? 1;
-    this.sender = config?.sender ?? 'verify@mailtest.local';
+    this.sender = config?.sender ?? 'verify@mailtester.local';
     this.tlsRequired = config?.tlsRequired ?? false;
     this.verifyMailbox = config?.verifyMailbox ?? true;
     this.port = config?.port ?? 25;

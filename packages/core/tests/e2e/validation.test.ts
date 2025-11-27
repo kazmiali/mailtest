@@ -1,5 +1,5 @@
 /**
- * End-to-End tests for mailtest validation pipeline
+ * End-to-End tests for mailtester validation pipeline
  *
  * Tests the complete validation workflow from public API through orchestrator
  * to final result formatting.

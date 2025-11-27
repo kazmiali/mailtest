@@ -42,7 +42,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@mailtest/core": ["./src/index.ts"]
+      "@mailtester/core": ["./src/index.ts"]
     }
   },
   "include": [

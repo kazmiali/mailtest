@@ -1,5 +1,5 @@
 {
-  "name": "mailtest",
+  "name": "mailtester",
   "version": "1.0.0",
   "description": "Modern, high-performance email validation library with intelligent scoring, caching, and bulk validation",
   "private": true,
@@ -31,12 +31,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alikazmi/mailtest.git"
+    "url": "https://github.com/alikazmi/mailtester.git"
   },
   "bugs": {
-    "url": "https://github.com/alikazmi/mailtest/issues"
+    "url": "https://github.com/alikazmi/mailtester/issues"
   },
-  "homepage": "https://github.com/alikazmi/mailtest#readme",
+  "homepage": "https://github.com/alikazmi/mailtester#readme",
   "engines": {
     "node": ">=20.0.0",
     "yarn": ">=4.0.0"

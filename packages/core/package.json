@@ -1,7 +1,7 @@
 {
-  "name": "@mailtest/core",
+  "name": "@mailtester/core",
   "version": "1.0.0",
-  "description": "Core email validation library for mailtest",
+  "description": "Core email validation library for mailtester",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -44,13 +44,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alikazmi/mailtest.git",
+    "url": "https://github.com/alikazmi/mailtester.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/alikazmi/mailtest/issues"
+    "url": "https://github.com/alikazmi/mailtester/issues"
   },
-  "homepage": "https://github.com/alikazmi/mailtest#readme",
+  "homepage": "https://github.com/alikazmi/mailtester#readme",
   "engines": {
     "node": ">=20.0.0"
   },

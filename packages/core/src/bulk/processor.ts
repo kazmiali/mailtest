@@ -1,5 +1,5 @@
 /**
- * Bulk Validation Processor for mailtest
+ * Bulk Validation Processor for mailtester
  *
  * Handles concurrent validation of multiple email addresses with
  * configurable concurrency limits and progress tracking.

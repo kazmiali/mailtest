@@ -1,5 +1,5 @@
 /**
- * Validation Context for mailtest
+ * Validation Context for mailtester
  *
  * Stores email, configuration, and intermediate validation results
  * during the validation pipeline execution.

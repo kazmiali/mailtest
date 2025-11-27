@@ -1,5 +1,5 @@
 /**
- * Core type definitions for mailtest
+ * Core type definitions for mailtester
  *
  * @packageDocumentation
  */

@@ -612,9 +612,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mailtest/core@workspace:packages/core":
+"@mailtester/core@workspace:packages/core":
   version: 0.0.0-use.local
-  resolution: "@mailtest/core@workspace:packages/core"
+  resolution: "@mailtester/core@workspace:packages/core"
   dependencies:
     "@eslint/js": "npm:^9.39.1"
     "@types/mailcheck": "npm:^1.1.37"
@@ -2806,9 +2806,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mailtest@workspace:.":
+"mailtester@workspace:.":
   version: 0.0.0-use.local
-  resolution: "mailtest@workspace:."
+  resolution: "mailtester@workspace:."
   dependencies:
     "@types/node": "npm:^24.10.1"
     "@yarnpkg/pnpify": "npm:^4.1.6"

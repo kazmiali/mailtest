@@ -1,5 +1,5 @@
 /**
- * @mailtest/core - Modern email validation library
+ * @mailtester/core - Modern email validation library
  *
  * @packageDocumentation
  */

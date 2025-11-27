@@ -1,5 +1,5 @@
 /**
- * Simple logger utility for mailtest
+ * Simple logger utility for mailtester
  *
  * Provides configurable logging with different severity levels
  *

@@ -1,5 +1,5 @@
 /**
- * Rate Limiting for mailtest
+ * Rate Limiting for mailtester
  *
  * Implements token bucket algorithm for per-domain and global rate limiting
  * to protect external services and avoid blacklisting.

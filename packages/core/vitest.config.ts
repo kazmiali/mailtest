@@ -56,7 +56,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
-      '@mailtest/core': resolve(__dirname, './src/index.ts'),
+      '@mailtester/core': resolve(__dirname, './src/index.ts'),
     },
   },
 });

@@ -1,5 +1,5 @@
 /**
- * Validation Orchestrator for mailtest
+ * Validation Orchestrator for mailtester
  *
  * Coordinates the validation pipeline, running validators in sequence
  * and aggregating results into a final ValidationResult.
