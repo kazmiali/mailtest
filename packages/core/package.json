@@ -19,6 +19,7 @@
     "dist/*.d.ts",
     "dist/*.d.cts",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
