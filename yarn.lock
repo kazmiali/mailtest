@@ -926,9 +926,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@humanwhocodes/module-importer@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "@humanwhocodes/module-importer@npm:1.0.2"
+"@humanwhocodes/module-importer@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@humanwhocodes/module-importer@npm:1.0.1"
   checksum: 909b69c3b86d482c26b3359db16e46a32e0fb30bd306a3c176b8313b9e7313dba0f37f519de6aa8b0a1921349e505f259d19475e123182416a506d7f87e7f529
   languageName: node
   linkType: hard
@@ -2216,8 +2216,8 @@ __metadata:
   linkType: hard
 
 "argparse@npm:^1.0.7":
-  version: 1.0.20
-  resolution: "argparse@npm:1.0.20"
+  version: 1.0.10
+  resolution: "argparse@npm:1.0.10"
   dependencies:
     sprintf-js: "npm:~1.0.2"
   checksum: b2972c5c23c63df66bca144dbc65d180efa74f25f8fd9b7d9a0a6c88ae839db32df3d54770dcb6460cf840d232b60695d1a6b1053f599d84e73f7437087712de
@@ -3000,7 +3000,7 @@ __metadata:
     "@eslint/js": "npm:9.39.1"
     "@eslint/plugin-kit": "npm:^0.4.1"
     "@humanfs/node": "npm:^0.16.6"
-    "@humanwhocodes/module-importer": "npm:^1.0.2"
+    "@humanwhocodes/module-importer": "npm:^1.0.1"
     "@humanwhocodes/retry": "npm:^0.4.2"
     "@types/estree": "npm:^1.0.6"
     ajv: "npm:^6.12.4"
@@ -3020,7 +3020,7 @@ __metadata:
     ignore: "npm:^5.2.0"
     imurmurhash: "npm:^0.1.4"
     is-glob: "npm:^4.0.0"
-    json-stable-stringify-without-jsonify: "npm:^1.0.2"
+    json-stable-stringify-without-jsonify: "npm:^1.0.1"
     lodash.merge: "npm:^4.6.2"
     minimatch: "npm:^3.1.2"
     natural-compare: "npm:^1.4.0"
@@ -3210,8 +3210,8 @@ __metadata:
   linkType: hard
 
 "fix-dts-default-cjs-exports@npm:^1.0.0":
-  version: 1.0.2
-  resolution: "fix-dts-default-cjs-exports@npm:1.0.2"
+  version: 1.0.1
+  resolution: "fix-dts-default-cjs-exports@npm:1.0.1"
   dependencies:
     magic-string: "npm:^0.30.17"
     mlly: "npm:^1.7.4"
@@ -3649,9 +3649,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json-stable-stringify-without-jsonify@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "json-stable-stringify-without-jsonify@npm:1.0.2"
+"json-stable-stringify-without-jsonify@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "json-stable-stringify-without-jsonify@npm:1.0.1"
   checksum: cb168b61fd4de83e58d09aaa6425ef71001bae30d260e2c57e7d09a5fd82223e2f22a042dedaab8db23b7d9ae46854b08bb1f91675a8be11c5cffebef5fb66a5
   languageName: node
   linkType: hard
@@ -3878,8 +3878,8 @@ __metadata:
   linkType: hard
 
 "mimic-response@npm:^1.0.0":
-  version: 1.0.2
-  resolution: "mimic-response@npm:1.0.2"
+  version: 1.0.1
+  resolution: "mimic-response@npm:1.0.1"
   checksum: c5381a5eae997f1c3b5e90ca7f209ed58c3615caeee850e85329c598f0c000ae7bec40196580eef1781c60c709f47258131dab237cad8786f8f56750594f27fa
   languageName: node
   linkType: hard
@@ -4222,8 +4222,8 @@ __metadata:
   linkType: hard
 
 "parent-module@npm:^1.0.0":
-  version: 1.0.2
-  resolution: "parent-module@npm:1.0.2"
+  version: 1.0.1
+  resolution: "parent-module@npm:1.0.1"
   dependencies:
     callsites: "npm:^3.0.0"
   checksum: c63d6e80000d4babd11978e0d3fee386ca7752a02b035fd2435960ffaa7219dc42146f07069fb65e6e8bf1caef89daf9af7535a39bddf354d78bf50d8294f556
