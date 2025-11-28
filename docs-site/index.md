@@ -40,12 +40,23 @@ npm install @mailtester/core
 ## Quick Start
 
 ```typescript
-import { validate } from '@mailtester/core';
+import { validateBulk } from '@mailtester/core';
 
-const result = await validate('user@gmail.com');
+const emails = [
+  'user1@gmail.com',
+  'user2@yahoo.com',
+  'fake@mailinator.com'
+];
 
-console.log(result.valid);  // true
-console.log(result.score);  // 85 (0-100 score)
+const result = await validateBulk(emails, {
+  concurrency: 10,
+  onProgress: (completed, total) => {
+    console.log(`Progress: ${completed}/${total}`);
+  }
+});
+
+console.log(`Valid: ${result.valid}/${result.total}`);
+// Output: "Valid: 2/3"
 ```
 
 ## Why mailtester?

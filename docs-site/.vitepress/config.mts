@@ -24,7 +24,7 @@ export default defineConfig({
       { text: 'API', link: '/api' },
       { text: 'Examples', link: '/examples' },
       {
-        text: 'v1.0.1',
+        text: 'v1.0.2',
         items: [
           { text: 'Changelog', link: 'https://github.com/kazmiali/mailtester/blob/main/CHANGELOG.md' },
           { text: 'npm', link: 'https://www.npmjs.com/package/@mailtester/core' }
