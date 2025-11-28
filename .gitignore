@@ -61,6 +61,10 @@ Thumbs.db
 .cache/
 .temp/
 
+# VitePress
+docs-site/.vitepress/cache/
+docs-site/.vitepress/dist/
+
 # Documentation and research (kept local)
 docs/
 research/
