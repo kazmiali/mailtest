@@ -13,11 +13,11 @@
 
 A comprehensive email validation library with RFC 5322 compliance, typo detection, disposable email blocking, MX record verification, and SMTP validation.
 
+**[📚 Documentation](https://kazmiali.github.io/mailtester/)** •
 [Installation](#installation) •
 [Quick Start](#quick-start) •
 [API Reference](#api-reference) •
 [Configuration](#configuration) •
-[Validators](#validators) •
 [License](#license)
 
 </div>

@@ -59,7 +59,7 @@
   "bugs": {
     "url": "https://github.com/kazmiali/mailtester/issues"
   },
-  "homepage": "https://github.com/kazmiali/mailtester#readme",
+  "homepage": "https://kazmiali.github.io/mailtester/",
   "engines": {
     "node": ">=20.0.0"
   },
